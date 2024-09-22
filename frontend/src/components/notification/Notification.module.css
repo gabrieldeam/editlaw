@@ -1,0 +1,52 @@
+/* src/components/Notification/Notification.module.css */
+
+.notification {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #4C4C4C; /* Fundo padrão */
+    padding: 12px 16px;
+    border-radius: 8px;
+    max-width: 400px;
+    position: fixed;
+    bottom: 20px; /* Posição fixa no canto inferior direito */
+    right: 20px;
+    z-index: 1000; /* Garante que a notificação fique acima de outros elementos */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+  }
+  
+  .message {
+    font-size: 14px;
+    color: white; /* Cor do texto */
+    flex-grow: 1; /* Faz o texto ocupar o espaço restante */
+  }
+  
+  /* Estilos para diferenciar sucesso e erro */
+  .success {
+    background-color: #28a745; /* Verde para sucesso */
+  }
+  
+  .error {
+    background-color: #dc3545; /* Vermelho para erro */
+  }
+  
+  /* Botão de fechar (X) */
+  .closeButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .closeButton:hover {
+    color: #f0f0f0;
+  }
+  

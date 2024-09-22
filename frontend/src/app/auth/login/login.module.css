@@ -1,0 +1,150 @@
+.pageContainer {
+    display: flex;
+    height: 100vh;
+}
+
+.leftContainer, .rightContainer {
+    flex: 1;
+}
+
+.leftContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    max-width: 456px;
+    margin: 0 auto;
+    margin-left: 200px;
+}
+
+.rightContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f7f7f7;
+}
+
+.rightImage {
+    max-width: 80%;
+    height: auto;
+}
+
+.logo {
+    width: 231px;
+    height: 75px;
+    margin-bottom: 60px;
+}
+
+.title {
+    margin-bottom: 20px;
+    font-size: 25px;
+    text-align: left;
+    width: 100%;
+}
+
+.googleButton {
+    width: 100%;
+    height: 65px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.googleIcon {
+    width: 36px;
+    height: 26px;
+    margin-right: 10px;
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: #ddd;
+    border: none;
+}
+
+.or {
+    margin: 0 15px;
+    font-size: 16px;
+    color: #333;
+}
+
+.form {
+    width: 100%;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    background-color: #45C907;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.button:hover {
+    background-color: #3da506;
+}
+
+.loginText {
+    font-size: 16px;
+    color: #333;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.link {
+    color: #0070f3;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .rightContainer {
+        display: none;
+    }
+    
+    .leftContainer {
+        max-width: 456px; /* Mantém a largura máxima de 456px */
+        margin: 0 auto; /* Centraliza horizontalmente */
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px; /* Adiciona um pouco de padding nas laterais */
+        height: 100%; /* Garante que ocupe a altura completa */
+    }
+}
+
+
+@media (max-width: 768px) {
+    .rightContainer {
+        display: none;
+    }
+
+    .leftContainer {
+        max-width: 100%;
+        margin-left: 0px;
+    }
+
+}

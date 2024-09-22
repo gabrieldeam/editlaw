@@ -1,0 +1,75 @@
+.sectionContainer {
+    height: 420px;
+    background-color: #45C907; /* Cor de fundo verde */
+    background-image: url('/image/editlawblur.svg'); 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.textContainer {
+    text-align: center;
+    padding: 0px; /* Remover o padding grande que desloca o conteúdo */
+}
+
+.uniqueDocuments {
+    font-size: 14px;
+    background-color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 50px;
+    display: inline-block;
+    margin-bottom: 20px;
+    border: #F5F5F5 solid 1px;
+}
+
+.title {
+    font-size: 74px;
+    color: rgb(0, 0, 0);
+    margin-bottom: 20px;
+}
+
+.doc {
+    color: rgb(255, 255, 255);
+}
+
+.edit {
+    color: rgb(255, 255, 255);
+    font-weight: 800;
+}
+
+.subtext {
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+
+    .sectionContainer {
+        margin-top: 0px;
+        background-image: url('/image/editlawblurMobile.svg');  
+        background-size: contain; /* Ajusta o tamanho da imagem sem cortar */
+        background-position: center center; /* Centraliza a imagem */
+        background-repeat: no-repeat;
+    }
+
+    .textContainer {
+        text-align: center;
+        padding: 15px;
+    }
+
+    .title {
+        font-size: 50px;
+    }
+
+    .subtext {
+        font-size: 16px;
+        padding: 0 20px 0 20px;
+    }
+}
