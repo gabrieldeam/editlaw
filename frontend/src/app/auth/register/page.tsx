@@ -1,34 +1,39 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Importa o hook useRouter
+import { useRouter } from 'next/navigation';
 import { registerUser } from '../../../services/authService';
 import Input from '../../../components/input/Input';
-import Notification from '../../../components/notification/Notification'; // Importa o componente de notificação
+import Notification from '../../../components/notification/Notification';
 import Link from 'next/link';
 import styles from './register.module.css';
+import { validatePassword } from '../../../utils/passwordValidation'; // Importe a função de validação
 
 const RegisterPage: React.FC = () => {
-  const [name, setName] = useState(''); // Adicionado estado para o nome
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-  
-  const router = useRouter(); // Hook para redirecionamento
+
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      // Passa o nome, email e senha para o endpoint
-      const data = await registerUser({ name, email, password });
-      setNotification({ message: 'Registro bem-sucedido!', type: 'success' }); // Notificação de sucesso
-      console.log('Registro bem-sucedido:', data);
+    // Validação de senha
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setNotification({ message: passwordError, type: 'error' });
+      return;
+    }
 
-      // Redireciona para a home após o registro
+    try {
+      const data = await registerUser({ name, email, password });
+      setNotification({ message: 'Registro bem-sucedido!', type: 'success' });
+      console.log('Registro bem-sucedido:', data);
       router.push('/');
     } catch (error) {
-      setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' }); // Notificação de erro
+      setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' });
       console.error('Erro no registro:', error);
     }
   };
@@ -61,7 +66,6 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        {/* Adicionando o campo Nome */}
         <Input
           label="Nome"
           name="name"

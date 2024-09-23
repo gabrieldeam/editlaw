@@ -12,7 +12,8 @@ export const verifyRole = (role: string) => {
         return res.status(401).json({ message: 'Token não fornecido.' });
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number };
+      // Agora o userId no token é uma string (UUID)
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
       
       prisma.user.findUnique({ where: { id: decoded.userId } })
         .then((user: User | null) => {  // Defina o tipo do usuário explicitamente

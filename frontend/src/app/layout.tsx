@@ -3,43 +3,73 @@
 import '../styles/globals.css';
 import { ReactNode, useEffect, useState } from 'react';
 import Header from '../components/header/Header';
-import { usePathname, useRouter } from 'next/navigation'; 
-import { checkAuth } from '../services/authService';  // Serviço para verificar a autenticação
+import { usePathname, useRouter } from 'next/navigation';
+import { checkAuth, isAdmin } from '../services/authService';  // Importar serviços de autenticação e verificação de admin
 
 interface RootLayoutProps {
   children: ReactNode;
 }
 
 const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
-  const pathname = usePathname(); 
+  const pathname = usePathname();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const noHeaderPages = ['/auth/login', '/auth/register', '/auth/reset-password'];
+  // Define as páginas que não exibem o Header
+  const noHeaderPages = ['/auth/login', '/auth/register', '/auth/reset-password', '/auth/reset-password/[token]'];
+  
+  // Define as rotas protegidas que necessitam de autenticação
+  const protectedRoutes = ['/admin', '/account', '/purchases'];
+  
+  // Define as rotas que requerem que o usuário seja administrador
+  const adminRoutes = ['/admin', '/admin/users', '/admin/categories'];
 
-  const showHeader = !noHeaderPages.includes(pathname);
+  const showHeader = !noHeaderPages.includes(pathname);  // Não exibe o header nas rotas de autenticação
 
-  // Função para verificar a autenticação e redirecionar se o usuário estiver logado
+  // Função para verificar a autenticação e papel do usuário
   useEffect(() => {
-    const verifyAuth = async () => {
+    const verifyAuthAndRole = async () => {
       try {
+        // Verifica se o usuário está autenticado
         const response = await checkAuth();
         if (response.message === 'Autenticado!') {
           setIsAuthenticated(true);
+
+          // Redireciona para a home se o usuário autenticado tentar acessar páginas de login/registro
           if (noHeaderPages.includes(pathname)) {
-            // Redireciona o usuário para a home se ele tentar acessar páginas de login/registro autenticado
             router.push('/');
+          }
+
+          // Verifica se o usuário é admin ao acessar rotas de admin
+          if (adminRoutes.includes(pathname)) {
+            const adminResponse = await isAdmin();
+            if (!adminResponse.isAdmin) {
+              // Se o usuário não for admin, redireciona para a home
+              router.push('/');
+            } else {
+              setIsAdminUser(true); // Define como admin
+            }
+          }
+        } else {
+          // Se o usuário tentar acessar uma rota protegida sem estar autenticado
+          if (protectedRoutes.includes(pathname) || adminRoutes.includes(pathname)) {
+            router.push('/auth/login'); // Redireciona para a página de login
           }
         }
       } catch (error) {
         setIsAuthenticated(false);
+        // Redireciona para o login se o usuário tentar acessar uma rota protegida sem estar autenticado
+        if (protectedRoutes.includes(pathname) || adminRoutes.includes(pathname)) {
+          router.push('/auth/login');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    verifyAuth();
+    verifyAuthAndRole();
   }, [pathname, router]);
 
   if (loading) {
@@ -50,7 +80,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
   return (
     <html lang="pt-BR">
       <body>
-        {showHeader && <Header />}
+        {showHeader && <Header />} {/* Não exibe o Header nas páginas de autenticação */}
         <main>{children}</main>
       </body>
     </html>

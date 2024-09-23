@@ -8,10 +8,13 @@ import {
     editEmail, 
     getUserInfo,
     confirmResetPassword,
-    logoutUser
+    logoutUser,
+    isAdmin,
+    getAllUsers
 } from '../controllers/authController';
 import passport from 'passport';
 import { googleLoginSuccess } from '../controllers/authGoogle';
+import { verifyRole } from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -34,16 +37,18 @@ const router = Router();
  *                 type: string
  *               name:
  *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, USER]
  *     responses:
  *       201:
  *         description: Usuário registrado com sucesso.
  *       400:
- *         description: Email já registrado.
+ *         description: Email já registrado ou senha inválida.
  *       500:
  *         description: Erro ao registrar usuário.
  */
 router.post('/register', registerUser);
-
 
 /**
  * @swagger
@@ -65,8 +70,8 @@ router.post('/register', registerUser);
  *     responses:
  *       200:
  *         description: Login bem-sucedido.
- *       401:
- *         description: Senha incorreta.
+ *       400:
+ *         description: Usuário não possui senha ou a senha é inválida.
  *       404:
  *         description: Usuário não encontrado.
  *       500:
@@ -74,12 +79,11 @@ router.post('/register', registerUser);
  */
 router.post('/login', loginUser);
 
-
 /**
  * @swagger
  * /api/auth/reset-password:
  *   post:
- *     summary: Envia um email para redefinição de senha.
+ *     summary: Solicita a redefinição de senha enviando um email com um token.
  *     tags: [Autenticação]
  *     requestBody:
  *       required: true
@@ -90,11 +94,45 @@ router.post('/login', loginUser);
  *             properties:
  *               email:
  *                 type: string
+ *                 description: O email do usuário que deseja redefinir a senha.
+ *                 example: "usuario@example.com"
  *     responses:
  *       200:
- *         description: Email de redefinição enviado.
+ *         description: Email de redefinição enviado com sucesso.
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Erro ao enviar email de redefinição.
  */
 router.post('/reset-password', resetPassword);
+
+/**
+ * @swagger
+ * /api/auth/confirm-reset-password:
+ *   post:
+ *     summary: Redefine a senha do usuário utilizando o token JWT.
+ *     tags: [Autenticação]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: O token JWT enviado por email para verificação.
+ *               newPassword:
+ *                 type: string
+ *                 description: A nova senha escolhida pelo usuário.
+ *                 example: "NovaSenha123!"
+ *     responses:
+ *       200:
+ *         description: Senha redefinida com sucesso.
+ *       400:
+ *         description: Token inválido ou expirado ou senha inválida.
+ */
+router.post('/confirm-reset-password', confirmResetPassword);
 
 /**
  * @swagger
@@ -124,7 +162,8 @@ router.get('/check-auth', checkAuth);
  *             type: object
  *             properties:
  *               userId:
- *                 type: number
+ *                 type: string
+ *                 description: O ID do usuário a ser excluído.
  *     responses:
  *       200:
  *         description: Conta excluída com sucesso.
@@ -147,7 +186,7 @@ router.delete('/delete-account', deleteAccount);
  *             type: object
  *             properties:
  *               userId:
- *                 type: number
+ *                 type: string
  *               newEmail:
  *                 type: string
  *     responses:
@@ -162,7 +201,7 @@ router.put('/edit-email', editEmail);
  * @swagger
  * /api/auth/google:
  *   get:
- *     summary: Autenticação via Google
+ *     summary: Inicia autenticação via Google.
  *     tags: [Autenticação]
  *     description: Redireciona para a página de login do Google.
  *     responses:
@@ -175,12 +214,11 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
  * @swagger
  * /api/auth/google/callback:
  *   get:
- *     summary: Callback após autenticação com Google
+ *     summary: Callback após autenticação com Google.
  *     tags: [Autenticação]
- *     description: Callback chamado pelo Google após autenticação.
  *     responses:
- *       200:
- *         description: Autenticação via Google bem-sucedida.
+ *       302:
+ *         description: Redireciona o usuário após autenticação com Google.
  */
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), googleLoginSuccess);
 
@@ -193,19 +231,6 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
  *     responses:
  *       200:
  *         description: Dados do usuário autenticado retornados com sucesso.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 userId:
- *                   type: number
- *                   description: O ID do usuário.
- *                   example: 1
- *                 name:
- *                   type: string
- *                   description: O nome do usuário.
- *                   example: "John Doe"
  *       401:
  *         description: Token não fornecido ou inválido.
  *       404:
@@ -214,51 +239,6 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
  *         description: Erro ao buscar informações do usuário.
  */
 router.get('/me', getUserInfo);
-
-/**
- * @swagger
- * /api/auth/reset-password:
- *   post:
- *     summary: Redefine a senha de um usuário.
- *     tags: [Autenticação]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *                 description: O token JWT enviado por email para verificação.
- *                 example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
- *               newPassword:
- *                 type: string
- *                 description: A nova senha escolhida pelo usuário.
- *                 example: "novaSenha123!"
- *     responses:
- *       200:
- *         description: Senha redefinida com sucesso.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Senha redefinida com sucesso."
- *       400:
- *         description: Token inválido ou expirado.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Token inválido ou expirado."
- */
-router.post('/reset-password', confirmResetPassword);
 
 /**
  * @swagger
@@ -273,5 +253,39 @@ router.post('/reset-password', confirmResetPassword);
  *         description: Erro ao realizar o logout.
  */
 router.post('/logout', logoutUser);
+
+/**
+ * @swagger
+ * /api/auth/is-admin:
+ *   get:
+ *     summary: Verifica se o usuário autenticado é um administrador.
+ *     tags: [Autenticação]
+ *     responses:
+ *       200:
+ *         description: O usuário é um administrador.
+ *       403:
+ *         description: O usuário não é um administrador.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Erro ao verificar o papel do usuário.
+ */
+router.get('/is-admin', isAdmin);
+
+/**
+ * @swagger
+ * /api/auth/users:
+ *   get:
+ *     summary: Retorna todos os usuários cadastrados com email, nome e role.
+ *     tags: [Autenticação]
+ *     responses:
+ *       200:
+ *         description: Lista de usuários retornada com sucesso.
+ *       500:
+ *         description: Erro ao buscar usuários.
+ */
+router.get('/users', verifyRole('ADMIN'), getAllUsers);
 
 export default router;

@@ -4,13 +4,20 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../prismaClient';
 import nodemailer from 'nodemailer';
 
-// Função para gerar token JWT
-const generateToken = (userId: number) => {
+// Função para gerar token JWT (userId agora é string)
+const generateToken = (userId: string) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 };
 
+
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password, name, role } = req.body;  
+
+  // Validar a senha
+  if (!validatePassword(password)) {
+    return res.status(400).json({ message: 'A senha deve conter pelo menos 8 caracteres, sem espaços, com pelo menos um número e uma letra maiúscula.' });
+  }
+
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -23,13 +30,12 @@ export const registerUser = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         name,
-        role: role || 'USER',  // Definir o role como 'USER' se for null ou não fornecido
+        role: role || 'USER',
       },
     });
 
-    const token = generateToken(newUser.id);
+    const token = generateToken(newUser.id);  // newUser.id é string (UUID)
 
-    // Definir o token como um cookie HTTP-Only
     res.cookie('token', token, {
       httpOnly: true, 
       secure: process.env.NODE_ENV === 'production', 
@@ -43,6 +49,8 @@ export const registerUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao registrar usuário.' });
   }
 };
+
+
 
 
 
@@ -63,9 +71,8 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Senha incorreta.' });
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user.id);  // user.id é string (UUID)
 
-    // Definir o token como um cookie HTTP-Only
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -79,6 +86,7 @@ export const loginUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao realizar login.' });
   }
 };
+
 
 
 
@@ -97,7 +105,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 
     // Criar o link de redefinição de senha
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${token}`;
 
     // Configurar o Nodemailer
     const transporter = nodemailer.createTransport({
@@ -153,12 +161,24 @@ export const checkAuth = async (req: Request, res: Response) => {
 export const deleteAccount = async (req: Request, res: Response) => {
   const { userId } = req.body;
   try {
+    // Excluir a conta do usuário no banco de dados
     await prisma.user.delete({ where: { id: userId } });
-    res.status(200).json({ message: 'Conta excluída com sucesso.' });
+
+    // Limpar o token do cookie após a exclusão da conta
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    res.status(200).json({ message: 'Conta excluída com sucesso e token removido.' });
   } catch (error) {
+    console.error('Erro ao excluir conta:', error);
     res.status(500).json({ message: 'Erro ao excluir conta.' });
   }
 };
+
+
 
 export const editEmail = async (req: Request, res: Response) => {
   const { userId, newEmail } = req.body;
@@ -173,6 +193,7 @@ export const editEmail = async (req: Request, res: Response) => {
   }
 };
 
+
 export const getUserInfo = async (req: Request, res: Response) => {
   try {
     // Recuperar o token do cookie
@@ -182,31 +203,35 @@ export const getUserInfo = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Token não fornecido.' });
     }
 
-    // Verificar e decodificar o token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number };
+    // Verificar e decodificar o token, garantindo que userId seja uma string
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
 
-    // Buscar o usuário no banco de dados
+    // Buscar o usuário no banco de dados com userId como string
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    // Retornar o nome e o userId
-    res.status(200).json({ userId: user.id, name: user.name });
+    // Retornar o userId, name e email
+    res.status(200).json({ userId: user.id, name: user.name, email: user.email });
   } catch (error) {
     console.error('Erro ao buscar informações do usuário:', error);
     res.status(500).json({ message: 'Erro ao buscar informações do usuário.' });
   }
 };
 
-
 export const confirmResetPassword = async (req: Request, res: Response) => {
   const { token, newPassword } = req.body;
 
+  // Validar a nova senha
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({ message: 'A senha deve conter pelo menos 8 caracteres, sem espaços, com pelo menos um número e uma letra maiúscula.' });
+  }
+
   try {
     // Verificar o token JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number, email: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string, email: string };
 
     // Hash da nova senha
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -223,6 +248,7 @@ export const confirmResetPassword = async (req: Request, res: Response) => {
   }
 };
 
+
 export const logoutUser = (req: Request, res: Response) => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -232,3 +258,55 @@ export const logoutUser = (req: Request, res: Response) => {
   res.status(200).json({ message: 'Logout realizado com sucesso!' });
 };
 
+export const isAdmin = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ message: 'Token não fornecido.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    // Verificar se o usuário tem o papel ADMIN
+    if (user.role === 'ADMIN') {
+      return res.status(200).json({ isAdmin: true, message: 'O usuário é um administrador.' });
+    } else {
+      return res.status(403).json({ isAdmin: false, message: 'Acesso negado. O usuário não é um administrador.' });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro ao verificar o papel do usuário.' });
+  }
+};
+
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    // Buscar todos os usuários no banco de dados, retornando apenas os campos email, name e role
+    const users = await prisma.user.findMany({
+      select: {
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    // Retornar a lista de usuários
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    res.status(500).json({ message: 'Erro ao buscar usuários.' });
+  }
+};
+
+// Função para validar senha
+const validatePassword = (password: string): boolean => {
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  return passwordRegex.test(password);
+};

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Importa o hook useRouter
 import { loginUser } from '../../../services/authService'; // Serviço de login
-import Input from '../../../components/input/Input'; // Reutiliza o Input
+import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification'; // Reutiliza o Notification
 import Link from 'next/link';
 import styles from './login.module.css'; // Estilos específicos de login

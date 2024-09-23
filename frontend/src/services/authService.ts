@@ -46,6 +46,16 @@ export const resetPassword = async (email: string) => {
   }
 };
 
+// Redefine a senha utilizando o token JWT
+export const confirmResetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await api.post('/auth/confirm-reset-password', { token, newPassword });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Verifica a autenticação do usuário com base no token de sessão
 export const checkAuth = async () => {
   try {
@@ -86,16 +96,6 @@ export const getUserInfo = async () => {
   }
 };
 
-// Confirma a redefinição de senha
-export const confirmResetPassword = async (token: string, newPassword: string) => {
-  try {
-    const response = await api.post('/auth/reset-password', { token, newPassword });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 // Faz o logout do usuário
 export const logout = async () => {
   try {
@@ -106,3 +106,22 @@ export const logout = async () => {
   }
 };
 
+// Verifica se o usuário é um administrador
+export const isAdmin = async () => {
+  try {
+    const response = await api.get('/auth/is-admin');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Retorna todos os usuários cadastrados
+export const getAllUsers = async () => {
+  try {
+    const response = await api.get('/auth/users');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

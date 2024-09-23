@@ -32,16 +32,15 @@ passport.use(new GoogleStrategy({
   }
 }));
 
-
 // Serializar o usuário na sessão
 passport.serializeUser((user: any, done) => {
-  done(null, user.id);
+  done(null, user.id); // 'id' agora é uma string (UUID)
 });
 
 // Desserializar o usuário da sessão
 passport.deserializeUser(async (id: string, done) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+    const user = await prisma.user.findUnique({ where: { id } }); // 'id' agora é uma string (UUID)
     done(null, user);
   } catch (error) {
     done(error, null);
@@ -49,13 +48,14 @@ passport.deserializeUser(async (id: string, done) => {
 });
 
 // Função para gerar o token JWT
-const generateToken = (userId: number) => {
+const generateToken = (userId: string) => { // userId agora é uma string
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
 };
 
 // Rota de login com sucesso após autenticação com o Google
 export const googleLoginSuccess = (req: any, res: any) => {
-  const token = generateToken(req.user.id);
+  const token = generateToken(req.user.id); // 'id' agora é uma string (UUID)
+
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -69,4 +69,3 @@ export const googleLoginSuccess = (req: any, res: any) => {
   // Redireciona para a home do frontend
   res.redirect(`${frontendUrl}/`); // Ajusta conforme o seu frontend
 };
-

@@ -1,0 +1,28 @@
+/* src/app/admin/admin.module.css */
+.container {
+  padding: 70px;
+}
+
+.title {
+  font-size: 22px;
+  margin-bottom: 40px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 20px;
+}
+
+.button {
+  padding: 16px 35px;
+  background-color: #45C907;
+  color: #000000;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.button:hover {
+  background-color: #3bb104;
+}

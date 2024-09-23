@@ -1,0 +1,54 @@
+/* src/app/admin/users/users.module.css */
+.container {
+    padding: 70px;
+  }
+  
+  .title {
+    font-size: 22px;
+    margin-bottom: 40px;
+  }
+
+  .userList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: 9px;
+    overflow: hidden;
+  }
+  
+  .userHeader, .userItem {
+    display: flex;
+    padding: 15px;
+    font-weight: bold;
+  }
+  
+  .userHeader {
+    background-color: #c0c0c0;
+  }
+  
+  .userItem {
+    font-weight: normal;
+  }
+  
+  .userHeader span, .userItem span {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .userItem span:first-child {
+    flex: 0.5;
+  }
+  
+  .oddRow {
+    background-color: #f9f9f9;
+  }
+  
+  .evenRow {
+    background-color: transparent;
+  }
+  
+  .userItem:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+  }
+  
