@@ -8,7 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 5px;
+    margin-top: 20px;
 }
 
 .textContainer {
@@ -30,6 +30,7 @@
     font-size: 74px;
     color: rgb(0, 0, 0);
     margin-bottom: 20px;
+    max-width: 800px;
 }
 
 .doc {
@@ -54,8 +55,8 @@
     .sectionContainer {
         margin-top: 0px;
         background-image: url('/image/editlawblurMobile.svg');  
-        background-size: contain; /* Ajusta o tamanho da imagem sem cortar */
-        background-position: center center; /* Centraliza a imagem */
+        background-size: contain; 
+        background-position: center center; 
         background-repeat: no-repeat;
     }
 

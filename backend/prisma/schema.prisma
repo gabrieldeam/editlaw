@@ -15,6 +15,12 @@ model User {
   email     String   @unique
   password  String?  // O password será opcional, já que o Google OAuth não usa senha
   name      String
+  role      Role     @default(USER) // Adiciona o campo de role com o valor padrão 'USER'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
 }

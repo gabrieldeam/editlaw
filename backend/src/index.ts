@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import authRoutes from './routes/authRoutes';
 import { prisma } from './prismaClient';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 const app = express();
@@ -32,9 +33,13 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-// Middleware
-app.use(cors());
+// Middleware CORS para permitir localhost:3000
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true, // Caso esteja lidando com cookies ou autenticação
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Swagger setup usando o spec gerado pelo swaggerJsdoc
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

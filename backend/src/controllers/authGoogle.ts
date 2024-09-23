@@ -7,10 +7,9 @@ import jwt from 'jsonwebtoken';
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID as string,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-  callbackURL: "/api/auth/google/callback"
+  callbackURL: "http://localhost:5000/api/auth/google/callback" // Backend processa a resposta
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    // Verificar se o usuário já existe no banco de dados
     const existingUser = await prisma.user.findUnique({
       where: { email: profile.emails?.[0].value }
     });
@@ -19,12 +18,11 @@ passport.use(new GoogleStrategy({
       return done(null, existingUser);
     }
 
-    // Se não existir, criar novo usuário com o campo 'name'
     const newUser = await prisma.user.create({
       data: {
         email: profile.emails?.[0].value || '',
-        password: '', // Padrão vazio para Google, pois não utilizamos senha
-        name: profile.displayName || 'Usuário Google' // Adiciona o nome ou um valor padrão
+        password: '', 
+        name: profile.displayName || 'Usuário Google'
       }
     });
 
@@ -58,5 +56,17 @@ const generateToken = (userId: number) => {
 // Rota de login com sucesso após autenticação com o Google
 export const googleLoginSuccess = (req: any, res: any) => {
   const token = generateToken(req.user.id);
-  res.status(200).json({ message: 'Login com Google bem-sucedido!', token });
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 3600000,
+  });
+
+  // Usar a variável de ambiente para o redirecionamento
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'; // Valor padrão caso FRONTEND_URL não esteja definido
+
+  // Redireciona para a home do frontend
+  res.redirect(`${frontendUrl}/`); // Ajusta conforme o seu frontend
 };
+

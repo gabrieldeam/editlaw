@@ -114,7 +114,7 @@
     align-items: center;
     justify-content: center;
     background-color: #000000;
-    position: relative; /* Ajuste para posicionamento */
+    position: relative;
   }
   
   .mobileSearchIcon {
@@ -134,6 +134,92 @@
     font-weight: bold;
     font-size: 14px;
     height: 48px;
+  }
+
+  .userContainer {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  
+  .userName {
+    font-size: 16px;
+    margin-right: 10px;
+    color: white;
+    font-weight: 900;
+  }
+  
+  .dropdownIcon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .dropdownMenu {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    margin-top: 10px;
+  }
+  
+  .menuItem {
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    padding: 10px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+  }
+  
+  .menuItem:hover {
+    color: #45C907;
+  }
+
+  .menuItemLogout {
+    color: rgb(0, 0, 0);
+    background-color: #45C907;
+    text-decoration: none;
+    padding: 10px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    border-radius: 9px;
+    margin-top: 5px;
+  }
+  
+  .menuItemLogout:hover {
+    color: #ffffff;
+  }
+  
+  .mobileUserIcon {
+    width: 48px;
+    height: 48px;
+    background-color: #4C4C4C;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    margin-left: 10px;
+  }
+  
+  .mobileUserIcon img {
+    width: 24px;
+    height: 24px;
+  }
+  
+
+  .mobileUserIcon {
+    display: none;
   }
   
   @media (min-width: 768px) and (max-width: 1024px) {
@@ -197,6 +283,18 @@
       font-weight: bold;
       font-size: 16px;
       border: #000000 solid 1px;
+    }
+
+    .userContainer {
+      display: none;
+    }
+  
+    .mobileUserIcon {
+      display: flex;
+    }
+
+    .dropdownMenu {
+      margin-top: 5px;
     }
   }
   
@@ -262,5 +360,25 @@
       font-size: 16px;
       border: #000000 solid 1px;
     }
+
+      .userContainer {
+    display: none;
+  }
+
+  .mobileUserIcon {
+    display: flex;
+  }
+
+  .userContainer {
+    display: none;
+  }
+
+  .mobileUserIcon {
+    display: flex;
+  }
+  
+  .dropdownMenu {
+    margin-top: 5px;
+  }
   }
   

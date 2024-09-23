@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Importa o hook useRouter
 import { registerUser } from '../../../services/authService';
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification'; // Importa o componente de notificação
@@ -8,21 +9,33 @@ import Link from 'next/link';
 import styles from './register.module.css';
 
 const RegisterPage: React.FC = () => {
+  const [name, setName] = useState(''); // Adicionado estado para o nome
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  
+  const router = useRouter(); // Hook para redirecionamento
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const data = await registerUser({ email, password });
+      // Passa o nome, email e senha para o endpoint
+      const data = await registerUser({ name, email, password });
       setNotification({ message: 'Registro bem-sucedido!', type: 'success' }); // Notificação de sucesso
       console.log('Registro bem-sucedido:', data);
+
+      // Redireciona para a home após o registro
+      router.push('/');
     } catch (error) {
       setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' }); // Notificação de erro
       console.error('Erro no registro:', error);
     }
+  };
+
+  // Função para redirecionar o usuário para autenticação do Google
+  const handleGoogleSignIn = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (
@@ -33,12 +46,12 @@ const RegisterPage: React.FC = () => {
       <Link href="/">
         <img src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} />
       </Link>
-      
+
       <h1 className={styles.title}>Criar uma conta</h1>
 
-      <button className={styles.googleButton}>
+      <button className={styles.googleButton} onClick={handleGoogleSignIn}>
         <img src="/image/google.svg" alt="Google Icon" className={styles.googleIcon} />
-        Registra-se com o Google
+        Registrar-se com o Google
       </button>
 
       <div className={styles.separator}>
@@ -48,6 +61,14 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
+        {/* Adicionando o campo Nome */}
+        <Input
+          label="Nome"
+          name="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <Input
           label="E-mail"
           name="email"

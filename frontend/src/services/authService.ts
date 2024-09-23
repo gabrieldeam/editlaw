@@ -1,6 +1,7 @@
 import api from './api';
 
 interface RegisterData {
+  name: string;
   email: string;
   password: string;
 }
@@ -10,6 +11,12 @@ interface LoginData {
   password: string;
 }
 
+interface EditEmailData {
+  userId: number;
+  newEmail: string;
+}
+
+// Registra um novo usuário
 export const registerUser = async (data: RegisterData) => {
   try {
     const response = await api.post('/auth/register', data);
@@ -19,6 +26,7 @@ export const registerUser = async (data: RegisterData) => {
   }
 };
 
+// Faz o login do usuário
 export const loginUser = async (data: LoginData) => {
   try {
     const response = await api.post('/auth/login', data);
@@ -28,6 +36,7 @@ export const loginUser = async (data: LoginData) => {
   }
 };
 
+// Solicita redefinição de senha
 export const resetPassword = async (email: string) => {
   try {
     const response = await api.post('/auth/reset-password', { email });
@@ -37,4 +46,63 @@ export const resetPassword = async (email: string) => {
   }
 };
 
-// Adicione outros métodos conforme necessário
+// Verifica a autenticação do usuário com base no token de sessão
+export const checkAuth = async () => {
+  try {
+    const response = await api.get('/auth/check-auth');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Exclui a conta de um usuário com base no ID
+export const deleteAccount = async (userId: number) => {
+  try {
+    const response = await api.delete('/auth/delete-account', { data: { userId } });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Edita o email de um usuário
+export const editEmail = async (data: EditEmailData) => {
+  try {
+    const response = await api.put('/auth/edit-email', data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Retorna os dados do usuário autenticado
+export const getUserInfo = async () => {
+  try {
+    const response = await api.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Confirma a redefinição de senha
+export const confirmResetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Faz o logout do usuário
+export const logout = async () => {
+  try {
+    const response = await api.post('/auth/logout');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
