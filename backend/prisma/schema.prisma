@@ -38,3 +38,14 @@ model BillingInfo {
   postalCode  String
   cpf         String
 }
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  image1      String?  // Imagem opcional
+  image2      String?  // Imagem opcional
+  image3      String?  // Imagem opcional
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

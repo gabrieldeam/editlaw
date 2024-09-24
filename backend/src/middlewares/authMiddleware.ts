@@ -30,3 +30,18 @@ export const verifyRole = (role: string) => {
     }
   };
 };
+
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Token não fornecido.' });
+  }
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET as string);
+    next(); // O token é válido, prossegue para a próxima função
+  } catch (error) {
+    return res.status(401).json({ message: 'Token inválido ou expirado.' });
+  }
+};

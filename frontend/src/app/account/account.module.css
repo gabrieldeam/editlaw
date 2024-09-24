@@ -1,9 +1,8 @@
-/* src/app/account/account.module.css */
 .pageContainer {
     display: flex;
     flex-direction: column;
     padding: 70px;
-    gap: 20px; /* Espaçamento entre o título e os contêineres */
+    gap: 20px;
 }
 
 .title {
@@ -18,7 +17,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
 }
 
 .leftContainer, .rightContainer {
@@ -44,7 +42,7 @@
     padding: 20px;
 }
 
-.emailBox, .deleteBox {
+.emailBox, .deleteBox, .billingBox {
     background-color: #E2E2E2;
     padding: 20px;
     border-radius: 9px;
@@ -53,7 +51,7 @@
     margin-bottom: 20px;
 }
 
-.emailTitle, .deleteTitle {
+.emailTitle, .deleteTitle, .billingTitle {
     font-size: 20px;
     margin-bottom: 10px;
 }
@@ -78,6 +76,16 @@
 .button:hover, .deleteButton:hover {
     background-color: #3da506;
 }
+
+.inputRow {
+    display: flex;
+    gap: 10px; /* Espaçamento entre os inputs */
+
+  }
+  
+  .inputRow > div {
+    flex: 1; /* Faz os inputs terem o mesmo tamanho */
+  }
 
 @media (max-width: 1024px) {
     .pageContainer {

@@ -5,7 +5,11 @@ import passport from 'passport';
 import session from 'express-session';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import path from 'path';  // Import para gerenciar caminhos de arquivos
+import fs from 'fs';       // Import para manipulação de arquivos (exclusão de imagens)
 import authRoutes from './routes/authRoutes';
+import billingRoutes from './routes/billingRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 import { prisma } from './prismaClient';
 import cookieParser from 'cookie-parser';
 
@@ -27,9 +31,8 @@ const options = {
       version: '1.0.0',
     },
   },
-  apis: ['./src/routes/*.ts', './src/controllers/*.ts'], // Aponta também para os controladores
+  apis: ['./src/routes/*.ts', './src/controllers/*.ts'], // Aponta para os controladores e rotas
 };
-
 
 const swaggerSpec = swaggerJsdoc(options);
 
@@ -41,9 +44,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Servir arquivos estáticos da pasta 'upload'
+app.use('/upload', express.static(path.join(__dirname, 'upload')));
+
 // Swagger setup usando o spec gerado pelo swaggerJsdoc
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Rotas
 app.use('/api/auth', authRoutes);
+app.use('/api', billingRoutes);
+app.use('/api', categoryRoutes);
 
 // Testar a Conexão com o Banco de Dados
 async function testDBConnection() {
@@ -62,6 +72,13 @@ app.get('/api', (req: Request, res: Response) => {
   res.json({ message: 'API do EditLaw funcionando e conectada ao PostgreSQL via Prisma!' });
 });
 
+// Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
 });
+
+// Criar a pasta 'upload' se não existir
+const uploadDir = path.join(__dirname, 'upload');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
