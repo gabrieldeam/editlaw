@@ -1,0 +1,177 @@
+/* Container principal que usa Flexbox */
+.container {
+    display: flex;
+    height: 100vh; /* Ocupa toda a altura da tela */
+    box-sizing: border-box;
+    overflow: hidden; /* Garante que não haja overflow geral */
+}
+
+/* Parte esquerda com fundo e tamanho menor */
+.leftSection {
+    min-width: 40%;
+    background-color: #DFDFDF;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden; /* Certifique-se de que o conteúdo se ajuste */
+    box-sizing: border-box;
+}
+
+.leftSectionBox {
+    width: 100%;
+    height: 100%;
+    padding: 50px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Preview box dentro da parte esquerda */
+.previewBox {
+    width: 100%;
+    height: 100%; /* Altura preenchendo a leftSection */
+    overflow: hidden; /* Evita scrollbars no container */
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Estilo do iframe que renderiza o HTML */
+.previewIframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    transform-origin: top left;
+    overflow: hidden; /* Adicionado para evitar overflow no iframe */
+}
+
+/* Parte direita maior */
+.rightSection {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch; /* Permite que o conteúdo estique horizontalmente */
+    box-sizing: border-box;
+    overflow: hidden; /* Evita overflow na parte direita */
+}
+
+/* Botões de navegação */
+.buttonContainer {
+    display: flex;
+    width: 100%;
+}
+
+.switchButton {
+    padding: 10px 20px;
+    flex: 1; /* Ambos os botões ocupam igual espaço */
+    background-color: #F0F0F0;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.switchButton:hover {
+    background-color: #E0E0E0;
+}
+
+.switchButton.active {
+    background-color: #45C907; /* Cor do botão ativo */
+    color: white;
+}
+
+/* Conteúdo dinâmico */
+.content {
+    flex: 1; /* Ocupa o espaço restante na direita */
+    width: 100%;
+    text-align: left; /* Alinha texto à esquerda */
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: auto; /* Permite scroll apenas no conteúdo dinâmico */
+    display: flex;
+    flex-direction: column;
+}
+
+.titlePreviewBox {
+    font-size: 20px;
+    margin-bottom: 20px;
+    margin-top: -30px;
+}
+
+.title {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.content .text {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Estilos para o editor CodeMirror */
+.codeEditor {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    overflow: hidden; /* Previna overflow */
+}
+
+/* Estilos para o CodeMirror */
+.codeMirrorContainer {
+    width: 100%;
+    height: 100%;
+}
+
+.cm-editor {
+    height: 100%;
+}
+
+.cm-scroller {
+    height: 100%;
+    overflow: auto !important;
+}
+
+.cm-content {
+    text-align: left !important; /* Alinha o texto à esquerda */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .leftSection, .rightSection {
+        flex: none;
+        width: 100%;
+    }
+
+    .previewBox {
+        height: 300px; /* Ajustar conforme necessário para mobile */
+    }
+
+    .rightSection {
+        height: 50vh; /* Ajuste para mobile */
+    }
+
+    .content {
+        padding: 10px;
+    }
+
+    .switchButton {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .buttonContainer {
+        gap: 5px;
+    }
+
+    .previewIframe {
+        transform: scale(0.8); /* Ajustar escala para mobile */
+    }
+}

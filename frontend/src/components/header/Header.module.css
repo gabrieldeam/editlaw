@@ -19,38 +19,8 @@
   }
   
   .logo {
-    width: 155px;
+    min-width: 155px;
     height: 50px;
-  }
-  
-  .searchContainer {
-    display: flex;
-    align-items: center;
-    position: relative;
-    margin-left: 30px;
-  }
-  
-  .searchIcon {
-    position: absolute;
-    left: 15px;
-    width: 20px;
-    height: 20px;
-  }
-  
-  .search {
-    width: 834px;
-    padding: 15px 15px 15px 50px;
-    border-radius: 50px;
-    outline: none;
-    background-color: #303030;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
-  }
-  
-  .search::placeholder {
-    color: #CFCFCF;
-    font-weight: bold;
   }
   
   .licenca {
@@ -73,7 +43,7 @@
   }
   
   .cartIcon {
-    width: 20px;
+    min-width: 20px;
     height: 20px;
   }
   
@@ -103,7 +73,47 @@
   .mobileButtons {
     display: none;
   }
+
+
+
+
+
+
+
+
+
+  .searchContainer {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-left: 30px;
+    width: 100%;
+  }
+
+  .searchIcon {
+    position: absolute;
+    left: 190px;
+    width: 20px;
+    height: 20px;
+  }
   
+  .search {
+    min-width: 500px;
+    padding: 15px 18px 15px 65px;
+    outline: none;
+    background-color: #303030;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    margin-left: -25px;
+    flex-grow: 1;
+  }
+  
+  .search::placeholder {
+    color: #CFCFCF;
+    font-weight: bold;
+  }
+    
   .searchMobileContainer {
     display: none;
   }
@@ -126,14 +136,32 @@
   
   .mobileSearchInput {
     width: 100%;
-    padding: 12px 15px 12px 50px; /* Ajuste para dar espaço ao ícone */
-    border-radius: 100px;
+    padding: 12px 18px 12px 75px;
     outline: none;
     background-color: #303030;
     color: white;
     font-weight: bold;
     font-size: 14px;
     height: 48px;
+    margin-left: -10%;
+  }
+  
+  .searchButton {
+    padding: 15px;
+    margin-left: 10px;
+    color: #ffffff;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 0 50px 50px 0;
+    font-size: 14px;
+    background-color: #303030;
+    margin-left: -17px;
+  }
+  
+  .searchButton:hover {
+    background-color: #3da506;
+    border-radius: 50px ;
   }
 
   .userContainer {
@@ -221,7 +249,60 @@
   .mobileUserIcon {
     display: none;
   }
+
+
+  @media (min-width: 1257px) and (max-width: 1457px) {
+
+    .search {
+      min-width: 200px;
+      padding: 16px 18px 16px 85px;
+    }
+
+    .searchButton {
+      padding: 16px;
+      margin-left: -17px;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1257px) {
+
+    .mobileSearchBar {
+      padding: 11px 20px;
+    }
+    
+    .cartContainer {
+      margin-left: 0px;
+    }
+
+    .searchIcon {
+      display: none;
+    }
   
+    .searchButton {
+      padding: 16px;
+      margin-left: -17px;
+    }
+  
+    .searchContainer {
+      display: none;
+    }
+
+    .searchMobileContainer {
+      display: block;
+      width: 48px;
+      height: 48px;
+      background-color: #4C4C4C;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      margin-left: 20px;
+    }
+
+  }
+
+ 
   @media (min-width: 768px) and (max-width: 1024px) {
     .header {
       padding: 0 20px;
@@ -232,10 +313,13 @@
     }
 
     .searchIcon {
-        left: 35px;
-      }
-      
+      display: none;
+    }
   
+    .searchButton {
+      padding: 16px;
+      margin-left: -17px;
+    }
     .cartContainer {
       margin-left: 0px;
       margin-right: 0px;
@@ -309,9 +393,13 @@
     }
 
     .searchIcon {
-        left: 35px;
+        left: 145px;
       }
-      
+    
+      .searchButton {
+        padding: 16px;
+        margin-left: -17px;
+      }
   
     .cartContainer {
       margin-left: 0px;
@@ -330,6 +418,10 @@
       margin-right: 10px;
     }
   
+    .mobileSearchInput {
+      margin-left: 80px;
+    }
+
     .mobileButtons {
       display: flex;
       align-items: center;

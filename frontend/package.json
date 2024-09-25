@@ -9,10 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@uiw/react-codemirror": "^4.23.3",
+    "ace-builds": "^1.36.2",
     "axios": "^1.7.7",
+    "dompurify": "^3.1.6",
+    "lodash": "^4.17.21",
     "next": "14.2.13",
     "react": "^18",
+    "react-ace": "^12.0.0",
     "react-dom": "^18",
+    "react-quill": "^2.0.0",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

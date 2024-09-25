@@ -7,7 +7,9 @@ import path from 'path';
 // Configurando multer para salvar arquivos na pasta /upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './upload');
+    const uploadPath = path.join(__dirname, '..', 'upload'); // Usa 'src/upload'
+    fs.ensureDirSync(uploadPath); // Garante que a pasta exista
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
@@ -15,6 +17,7 @@ const storage = multer.diskStorage({
     cb(null, fileName);
   },
 });
+
 
 export const upload = multer({ storage }).fields([
   { name: 'image1', maxCount: 1 },

@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import { getUserInfo, logout, isAdmin } from '../../services/authService';
+import { getAllCategories } from '../../services/categoryService';
 import styles from './Header.module.css';
 import { useRouter } from 'next/navigation';
+import CustomSelect from '../customSelect/CustomSelect';
 
 const Header: React.FC = () => {
   const [user, setUser] = useState<{ name: string } | null>(null);
@@ -12,6 +14,9 @@ const Header: React.FC = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [dropdownDesktopOpen, setDropdownDesktopOpen] = useState(false);
   const [dropdownMobileOpen, setDropdownMobileOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]); // Estado para armazenar categorias
+  const [selectedCategory, setSelectedCategory] = useState<string>(''); // Categoria selecionada
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const dropdownDesktopRef = useRef<HTMLDivElement>(null);
   const dropdownMobileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -28,6 +33,15 @@ const Header: React.FC = () => {
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const response = await getAllCategories();
+        setCategories(response);
+      } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+      }
+    };
+
     const checkAdmin = async () => {
       try {
         const adminResponse = await isAdmin();
@@ -40,8 +54,23 @@ const Header: React.FC = () => {
 
     // Execute both functions
     fetchUserInfo();
+    fetchCategories();
     checkAdmin();
   }, []);
+
+  // Função de busca
+  const handleSearch = () => {
+    if (searchQuery || selectedCategory) {
+      router.push(`/search?query=${searchQuery}&category=${selectedCategory}`);
+    }
+  };
+
+  // Adiciona o evento de tecla (Enter)
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   const handleSearchClick = () => {
     setShowMobileSearch(!showMobileSearch);
@@ -94,6 +123,10 @@ const Header: React.FC = () => {
     event.stopPropagation();
   };
 
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+  };
+
   return (
     <>
       <header className={styles.header}>
@@ -101,10 +134,33 @@ const Header: React.FC = () => {
           <Link href="/">
             <img src="/image/editlaw.svg" alt="EditLaw Logo" className={styles.logo} />
           </Link>
+
           <div className={styles.searchContainer}>
-            <img src="/icon/search.svg" alt="Search Icon" className={styles.searchIcon} />
-            <input type="text" placeholder="Pesquisar..." className={styles.search} />
+          
+          <CustomSelect
+            options={categories}
+            onSelect={handleCategorySelect}
+            placeholder="Todas as categorias"
+          />      
+
+            <img
+              src="/icon/search.svg"
+              alt="Search Icon"
+              className={styles.searchIcon}
+              onClick={handleSearch}  // Executa a busca ao clicar no ícone
+            />
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              className={styles.search}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}              
+            />
+            <button onClick={handleSearch} className={styles.searchButton}>Pesquisar</button>
+                  
           </div>
+
         </div>
         <div className={styles.right}>
           <Link href="/licenca" className={styles.licenca}>Licença</Link>
@@ -166,8 +222,31 @@ const Header: React.FC = () => {
         </div>
       ) : (
         <div className={styles.mobileSearchBar}>
-          <img src="/icon/search.svg" alt="Search Icon" className={styles.searchIcon} />
-          <input type="text" placeholder="Pesquisar..." className={styles.mobileSearchInput} />
+
+
+
+          <CustomSelect
+            options={categories}
+            onSelect={handleCategorySelect}
+            placeholder="Tudo"
+          />      
+
+            <img
+              src="/icon/search.svg"
+              alt="Search Icon"
+              className={styles.searchIcon}
+              onClick={handleSearch}  // Executa a busca ao clicar no ícone
+            />
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              className={styles.mobileSearchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}              
+            />
+            <button onClick={handleSearch} className={styles.searchButton}>Pesquisar</button>          
+
         </div>
       )}
     </>
