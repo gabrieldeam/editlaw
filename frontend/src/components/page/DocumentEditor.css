@@ -1,5 +1,43 @@
 /* src/components/page/DocumentEditor.css */
 
+.document-editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80px; /* Ajustado para compensar o Toolbox fixo */
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.pages-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza as páginas horizontalmente */
+  width: 100%;
+  max-width: 800px; /* Define uma largura máxima para o documento */
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.page-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  border: 1px solid #ddd; /* Opcional: adiciona uma borda para cada página */
+  padding: 10px;
+  background-color: #f9f9f9; /* Opcional: adiciona um fundo claro */
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Opcional: adiciona uma sombra suave */
+}
+
+.page-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .add-page-button {
   margin: 10px;
   padding: 10px 20px;
@@ -14,4 +52,38 @@
 
 .add-page-button:hover {
   background-color: #0056b3;
+}
+
+.duplicate-page-button {
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  background-color: #28a745;
+  color: #fff;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.duplicate-page-button:hover {
+  background-color: #1e7e34;
+}
+
+.delete-page-button {
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  background-color: #dc3545;
+  color: #fff;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.delete-page-button:hover {
+  background-color: #c82333;
+}
+
+.page-wrapper:hover {
+  border-color: #007bff; /* Opcional: muda a cor da borda ao passar o mouse */
 }

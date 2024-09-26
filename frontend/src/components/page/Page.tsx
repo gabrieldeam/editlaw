@@ -23,43 +23,30 @@ import useImage from 'use-image';
 import { KonvaEventObject } from 'konva/lib/Node';
 import jsPDF from 'jspdf';
 import './Page.css';
+import { v4 as uuidv4 } from 'uuid';
 
-// Define the type for icons as image URLs for simplicity
-type IconType = {
-  name: string;
-  src: string;
-};
-
-// Predefined list of icons with image URLs
-const iconLibrary: IconType[] = [
-  { name: 'Beer', src: 'https://img.icons8.com/emoji/48/000000/beer-mug-emoji.png' },
-  { name: 'Coffee', src: 'https://img.icons8.com/emoji/48/000000/hot-beverage-emoji.png' },
-  { name: 'Apple', src: 'https://img.icons8.com/emoji/48/000000/apple-emoji.png' },
-  { name: 'Android', src: 'https://img.icons8.com/emoji/48/000000/android-emoji.png' },
-  { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
-];
-
-interface PageProps {
+export interface PageProps {
   width: number;
   height: number;
 }
 
-interface ElementType {
+export interface ElementType {
   id: string;
   type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon';
   x: number;
   y: number;
-  content?: string; // For text
-  src?: string; // For images and icons
-  fontSize?: number; // For text
-  bold?: boolean; // For text
-  italic?: boolean; // For text
-  underline?: boolean; // For text
-  fill?: string; // For shapes and text
-  width?: number; // For images and shapes
-  height?: number; // For images and shapes
-  rotation?: number; // For all elements
-  radius?: number; // For circle and triangle
+  content?: string; // Para texto
+  src?: string; // Para imagens e ícones
+  fontSize?: number; // Para texto
+  bold?: boolean; // Para texto
+  italic?: boolean; // Para texto
+  underline?: boolean; // Para texto
+  fill?: string; // Para formas e texto
+  width?: number; // Para imagens e formas
+  height?: number; // Para imagens e formas
+  rotation?: number; // Para todos os elementos
+  radius?: number; // Para círculo e triângulo
+  textType?: 'text' | 'paragraph'; // Diferencia tipos de texto
 }
 
 const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
@@ -72,10 +59,14 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   const stageRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
 
-  // Expose stageRef to parent components (e.g., DocumentEditor)
-  useImperativeHandle(ref, () => stageRef.current);
+  // Expor métodos via ref
+  useImperativeHandle(ref, () => ({
+    stage: stageRef.current,
+    getElements: () => elements,
+    setElements: (newElements: ElementType[]) => setElements(newElements),
+  }));
 
-  // Update the Transformer whenever selectedId or elements change
+  // Atualizar o Transformer sempre que selectedId ou elements mudarem
   useEffect(() => {
     if (transformerRef.current) {
       if (selectedId) {
@@ -92,10 +83,14 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     }
   }, [selectedId, elements]);
 
-  // Handle drop of elements onto the stage
+  // Handle drop de elementos na stage
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const type = e.dataTransfer.getData('elementType') as ElementType['type'];
+
+    // Para textos, obter o tipo de texto
+    const textType = e.dataTransfer.getData('textType') as 'text' | 'paragraph';
+
     const imageSrc = e.dataTransfer.getData('imageSrc');
     const shapeColor = e.dataTransfer.getData('shapeColor') || '#000000';
     const iconSrc = e.dataTransfer.getData('iconSrc');
@@ -105,15 +100,16 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
 
     if (type === 'text') {
       const newElement: ElementType = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         type,
         x,
         y,
-        content: 'Novo texto',
-        fontSize: 16,
+        content: textType === 'paragraph' ? 'Novo parágrafo' : 'Novo texto',
+        fontSize: textType === 'paragraph' ? 14 : 16, // Tamanho de fonte diferente para parágrafo
         bold: false,
         italic: false,
         underline: false,
+        textType, // Armazenar o tipo de texto
       };
       setElements(prev => [...prev, newElement]);
     } else if (type === 'image' && imageSrc) {
@@ -125,7 +121,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         let imgWidth = img.width;
         let imgHeight = img.height;
 
-        // Resize if necessary
+        // Redimensionar se necessário
         if (imgWidth > maxWidth) {
           const ratio = maxWidth / imgWidth;
           imgWidth = maxWidth;
@@ -138,7 +134,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         }
 
         const newElement: ElementType = {
-          id: Date.now().toString(),
+          id: uuidv4(),
           type,
           x,
           y,
@@ -151,7 +147,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     } else if (['rectangle', 'square', 'circle', 'triangle'].includes(type)) {
       const defaultSize = type === 'square' ? 100 : type === 'circle' ? 50 : 100;
       const newElement: ElementType = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         type,
         x,
         y,
@@ -163,7 +159,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
       setElements(prev => [...prev, newElement]);
     } else if (type === 'icon' && iconSrc) {
       const newElement: ElementType = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         type,
         x,
         y,
@@ -175,7 +171,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     }
   };
 
-  // Start text editing
+  // Iniciar edição de texto
   const handleTextEdit = (el: ElementType) => {
     const textNode = stageRef.current.findOne('#' + el.id);
     const textPosition = textNode.getAbsolutePosition();
@@ -189,7 +185,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     setEditingElement(el);
   };
 
-  // Formatting functions
+  // Funções de formatação
   const toggleBold = () => {
     if (selectedId) {
       const newElements = elements.map((elem) =>
@@ -245,7 +241,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     }
   };
 
-  // Handle Delete key to remove elements
+  // Handle Delete key para remover elementos
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' && selectedId) {
@@ -258,7 +254,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedId]);
 
-  // Handle stage click to deselect
+  // Handle click na stage para deselecionar
   const handleStageClick = (e: any) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
@@ -266,7 +262,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     }
   };
 
-  // Listen to 'generate-pdf' event to generate PDF
+  // Escutar evento 'generate-pdf' para gerar PDF
   useEffect(() => {
     const handleGeneratePDF = () => {
       const pdf = new jsPDF('portrait', 'pt', 'a4');
@@ -289,7 +285,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     return () => window.removeEventListener('generate-pdf', handleGeneratePDF as EventListener);
   }, []);
 
-  // Separate component for text elements
+  // Componente separado para elementos de texto
   const TextElement = ({ el }: { el: ElementType }) => {
     const fontStyle = `${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim();
 
@@ -303,7 +299,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         fontStyle={fontStyle}
         underline={el.underline}
         fill={el.fill || 'black'}
-        width={width - el.x - 20} // Ensure text wraps within page boundaries
+        width={el.textType === 'paragraph' ? width - el.x - 20 : undefined} // Sem largura para 'text'
         align="left"
         draggable
         onClick={() => setSelectedId(el.id)}
@@ -343,7 +339,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     );
   };
 
-  // Separate component for image elements
+  // Componente separado para elementos de imagem
   const ImageElement = ({ el }: { el: ElementType }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
@@ -394,7 +390,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     );
   };
 
-  // Separate component for shape elements (rectangle, square, circle, triangle)
+  // Componente separado para elementos de forma (retângulo, quadrado, círculo, triângulo)
   const ShapeElement = ({ el }: { el: ElementType }) => {
     const commonProps = {
       id: el.id,
@@ -481,7 +477,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
           <Rect
             {...commonProps}
             width={el.width || 100}
-            height={el.width || 100} // Ensure height equals width
+            height={el.width || 100} // Garante que a altura seja igual à largura
           />
         );
       case 'circle':
@@ -504,7 +500,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     }
   };
 
-  // Separate component for icon elements
+  // Componente separado para elementos de ícone
   const IconElement = ({ el }: { el: ElementType }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
@@ -555,29 +551,6 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     );
   };
 
-  // Listen to 'select-icon' event to add icons
-  useEffect(() => {
-    const handleIconSelect = (event: Event) => {
-      const customEvent = event as CustomEvent<string>;
-      const iconSrc = customEvent.detail;
-      if (iconSrc) {
-        const newElement: ElementType = {
-          id: Date.now().toString(),
-          type: 'icon',
-          x: 100,
-          y: 100,
-          src: iconSrc,
-          width: 50,
-          height: 50,
-        };
-        setElements(prev => [...prev, newElement]);
-      }
-    };
-
-    window.addEventListener('select-icon', handleIconSelect as EventListener);
-    return () => window.removeEventListener('select-icon', handleIconSelect as EventListener);
-  }, []);
-
   return (
     <div
       className="page-container"
@@ -592,10 +565,10 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         onTap={handleStageClick}
       >
         <Layer>
-          {/* Background */}
-          <Rect x={0} y={0} width={width} height={height} fill="white" />
+          {/* Background com 'listening' desativado */}
+          <Rect x={0} y={0} width={width} height={height} fill="white" listening={false} />
 
-          {/* Render elements */}
+          {/* Renderizar elementos */}
           {elements.map((el) => {
             if (el.type === 'text') {
               return <TextElement key={el.id} el={el} />;
@@ -609,7 +582,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
             return null;
           })}
 
-          {/* Transformer for resizing and rotating */}
+          {/* Transformer para redimensionar e rotacionar */}
           {selectedId && (
             <Transformer
               ref={transformerRef}
@@ -625,13 +598,13 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
                 'bottom-center',
               ]}
               rotateEnabled={true}
-              boundBoxFunc={(oldBox, newBox) => newBox} // Allow free resizing
+              boundBoxFunc={(oldBox, newBox) => newBox} // Permite redimensionamento livre
             />
           )}
         </Layer>
       </Stage>
 
-      {/* Text Editing */}
+      {/* Edição de Texto */}
       {isEditing && editingElement && (
         <textarea
           className="text-edit-textarea"
@@ -643,6 +616,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
             fontStyle: editingElement.italic ? 'italic' : 'normal',
             textDecoration: editingElement.underline ? 'underline' : 'none',
             color: editingElement.fill || 'black',
+            transform: `rotate(${editingElement.rotation || 0}deg)`,
           }}
           value={editingElement.content}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -663,31 +637,37 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         />
       )}
 
-      {/* Formatting Bar */}
+      {/* Barra de Formatação */}
       {selectedId && elements.find((el) => el.id === selectedId)?.type === 'text' && (
         <div
           className="formatting-bar"
           style={{
-            top: textareaPosition.y - 40, // Position above the textarea
+            top: textareaPosition.y - 40, // Posiciona acima do textarea
             left: textareaPosition.x,
           }}
         >
           <button
-            className={`formatting-button formatting-button-bold ${elements.find(el => el.id === selectedId)?.bold ? 'active' : ''}`}
+            className={`formatting-button formatting-button-bold ${
+              elements.find(el => el.id === selectedId)?.bold ? 'active' : ''
+            }`}
             onClick={toggleBold}
             title="Negrito"
           >
             B
           </button>
           <button
-            className={`formatting-button formatting-button-italic ${elements.find(el => el.id === selectedId)?.italic ? 'active' : ''}`}
+            className={`formatting-button formatting-button-italic ${
+              elements.find(el => el.id === selectedId)?.italic ? 'active' : ''
+            }`}
             onClick={toggleItalic}
             title="Itálico"
           >
             I
           </button>
           <button
-            className={`formatting-button formatting-button-underline ${elements.find(el => el.id === selectedId)?.underline ? 'active' : ''}`}
+            className={`formatting-button formatting-button-underline ${
+              elements.find(el => el.id === selectedId)?.underline ? 'active' : ''
+            }`}
             onClick={toggleUnderline}
             title="Sublinhado"
           >

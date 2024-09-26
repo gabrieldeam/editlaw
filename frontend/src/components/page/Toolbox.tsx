@@ -22,8 +22,6 @@ const iconLibrary: IconType[] = [
 const Toolbox: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [shapeColor, setShapeColor] = useState<string>('#000000'); // Default color
-  const [iconModalOpen, setIconModalOpen] = useState<boolean>(false);
-  const [selectedIcon, setSelectedIcon] = useState<IconType | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,31 +45,32 @@ const Toolbox: React.FC = () => {
     window.dispatchEvent(new Event('generate-pdf'));
   };
 
-  const openIconModal = () => {
-    setIconModalOpen(true);
-  };
-
-  const closeIconModal = () => {
-    setIconModalOpen(false);
-  };
-
-  const handleIconSelect = (icon: IconType) => {
-    setSelectedIcon(icon);
-    setIconModalOpen(false);
-    // Dispatch custom event with icon image URL
-    window.dispatchEvent(new CustomEvent('select-icon', { detail: icon.src }));
-  };
-
   return (
     <div className="toolbox-container">
       {/* Text Tool */}
       <div
         draggable
-        onDragStart={(e) => e.dataTransfer.setData('elementType', 'text')}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('elementType', 'text');
+          e.dataTransfer.setData('textType', 'text'); // Tipo de texto
+        }}
         className="toolbox-item"
         title="Texto"
       >
         Texto
+      </div>
+
+      {/* Paragraph Tool */}
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('elementType', 'text');
+          e.dataTransfer.setData('textType', 'paragraph'); // Tipo de parágrafo
+        }}
+        className="toolbox-item"
+        title="Parágrafo"
+      >
+        Parágrafo
       </div>
 
       {/* Image Tool */}
@@ -143,18 +142,22 @@ const Toolbox: React.FC = () => {
         Triângulo
       </div>
 
-      {/* Icon Tool */}
-      <div
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData('elementType', 'icon');
-          // Icon URL will be sent via custom event upon selection in modal
-        }}
-        className="toolbox-item"
-        onClick={openIconModal}
-        title="Ícone"
-      >
-        Ícone
+      {/* Icon Tools */}
+      <div className="toolbox-icons">
+        {iconLibrary.map((icon, index) => (
+          <img
+            key={index}
+            src={icon.src}
+            alt={icon.name}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('elementType', 'icon');
+              e.dataTransfer.setData('iconSrc', icon.src);
+            }}
+            className="toolbox-icon"
+            title={icon.name}
+          />
+        ))}
       </div>
 
       {/* Color Picker */}
@@ -190,30 +193,6 @@ const Toolbox: React.FC = () => {
       >
         Gerar PDF
       </button>
-
-      {/* Icon Selection Modal */}
-      {iconModalOpen && (
-        <div
-          className="icon-modal"
-          onClick={closeIconModal}
-        >
-          <div
-            className="icon-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {iconLibrary.map((icon, index) => (
-              <div
-                key={index}
-                onClick={() => handleIconSelect(icon)}
-                className="icon-item"
-                title={icon.name}
-              >
-                <img src={icon.src} alt={icon.name} className="icon-image" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
