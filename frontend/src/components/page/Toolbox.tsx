@@ -1,16 +1,13 @@
-// src/components/page/Toolbox.tsx
-
 'use client';
 
 import React, { useRef, useState } from 'react';
-import './Toolbox.css';
+import styles from './Toolbox.module.css';
 
 type IconType = {
   name: string;
   src: string;
 };
 
-// Predefined list of icons with image URLs
 const iconLibrary: IconType[] = [
   { name: 'Doc', src: 'https://img.icons8.com/?size=100&id=b0vfoq4G1DH5&format=png&color=000000' },
   { name: 'Close', src: 'https://img.icons8.com/?size=100&id=GhvBtzNnBL71&format=png&color=000000' },
@@ -21,7 +18,7 @@ const iconLibrary: IconType[] = [
 
 const Toolbox: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [shapeColor, setShapeColor] = useState<string>('#000000'); // Default color
+  const [shapeColor, setShapeColor] = useState<string>('#000000');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -41,39 +38,35 @@ const Toolbox: React.FC = () => {
   };
 
   const handleGeneratePDF = () => {
-    // Dispatch custom event to generate PDF
     window.dispatchEvent(new Event('generate-pdf'));
   };
 
   return (
-    <div className="toolbox-container">
-      {/* Text Tool */}
+    <div className={styles.toolboxContainer}>
       <div
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('elementType', 'text');
-          e.dataTransfer.setData('textType', 'text'); // Tipo de texto
+          e.dataTransfer.setData('textType', 'text');
         }}
-        className="toolbox-item"
+        className={styles.toolboxItem}
         title="Texto"
       >
         Texto
       </div>
 
-      {/* Paragraph Tool */}
       <div
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('elementType', 'text');
-          e.dataTransfer.setData('textType', 'paragraph'); // Tipo de parágrafo
+          e.dataTransfer.setData('textType', 'paragraph');
         }}
-        className="toolbox-item"
+        className={styles.toolboxItem}
         title="Parágrafo"
       >
         Parágrafo
       </div>
 
-      {/* Image Tool */}
       <div
         id="draggable-image"
         draggable
@@ -87,20 +80,19 @@ const Toolbox: React.FC = () => {
             alert('Por favor, faça o upload de uma imagem primeiro.');
           }
         }}
-        className="toolbox-item"
+        className={styles.toolboxItem}
         title="Imagem"
       >
         Imagem
       </div>
 
-      {/* Shape Tools */}
       <div
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('elementType', 'rectangle');
           e.dataTransfer.setData('shapeColor', shapeColor);
         }}
-        className="toolbox-item"
+        className={styles.toolboxItem}
         title="Retângulo"
       >
         Retângulo
@@ -112,7 +104,7 @@ const Toolbox: React.FC = () => {
           e.dataTransfer.setData('elementType', 'square');
           e.dataTransfer.setData('shapeColor', shapeColor);
         }}
-        className="toolbox-item"
+        className={styles.toolboxItem}
         title="Quadrado"
       >
         Quadrado
@@ -124,7 +116,7 @@ const Toolbox: React.FC = () => {
           e.dataTransfer.setData('elementType', 'circle');
           e.dataTransfer.setData('shapeColor', shapeColor);
         }}
-        className="toolbox-item toolbox-item-circle"
+        className={`${styles.toolboxItem} ${styles.toolboxItemCircle}`}
         title="Círculo"
       >
         Círculo
@@ -136,14 +128,13 @@ const Toolbox: React.FC = () => {
           e.dataTransfer.setData('elementType', 'triangle');
           e.dataTransfer.setData('shapeColor', shapeColor);
         }}
-        className="toolbox-item toolbox-item-triangle"
+        className={`${styles.toolboxItem} ${styles.toolboxItemTriangle}`}
         title="Triângulo"
       >
         Triângulo
       </div>
 
-      {/* Icon Tools */}
-      <div className="toolbox-icons">
+      <div className={styles.toolboxIcons}>
         {iconLibrary.map((icon, index) => (
           <img
             key={index}
@@ -154,22 +145,20 @@ const Toolbox: React.FC = () => {
               e.dataTransfer.setData('elementType', 'icon');
               e.dataTransfer.setData('iconSrc', icon.src);
             }}
-            className="toolbox-icon"
+            className={styles.toolboxIcon}
             title={icon.name}
           />
         ))}
       </div>
 
-      {/* Color Picker */}
       <input
         type="color"
-        className="color-input"
+        className={styles.colorInput}
         value={shapeColor}
         onChange={(e) => setShapeColor(e.target.value)}
         title="Selecionar Cor"
       />
 
-      {/* Image Upload Button */}
       <input
         type="file"
         accept="image/*"
@@ -179,16 +168,15 @@ const Toolbox: React.FC = () => {
       />
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="upload-image-button"
+        className={styles.uploadImageButton}
         title="Upload Image"
       >
         Upload Image
       </button>
 
-      {/* Generate PDF Button */}
       <button
         onClick={handleGeneratePDF}
-        className="generate-pdf-button"
+        className={styles.generatePdfButton}
         title="Gerar PDF"
       >
         Gerar PDF

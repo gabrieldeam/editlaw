@@ -1,24 +1,41 @@
-// src/components/page/DocumentEditor.tsx
+// DocumentEditor.tsx
+
+'use client';
 
 import React, { useState } from 'react';
 import Toolbox from './Toolbox';
 import Page, { ElementType } from './Page';
 import TextList from './TextList';
-import './DocumentEditor.css';
+import styles from './DocumentEditor.module.css';
 import { v4 as uuidv4 } from 'uuid';
 
-const A4_WIDTH = 595; // Largura em pixels para 72 DPI
-const A4_HEIGHT = 842; // Altura em pixels para 72 DPI
-
+// Definição das interfaces
 interface PageData {
   id: string;
   elements: ElementType[];
 }
 
+interface TextWithPage extends ElementType {
+  pageId: string;
+}
+
+interface IconWithPage extends ElementType {
+  pageId: string;
+}
+
+interface ImageWithPage extends ElementType {
+  pageId: string;
+}
+
+const A4_WIDTH = 595; // Largura em pixels para 72 DPI
+const A4_HEIGHT = 842; // Altura em pixels para 72 DPI
+
 const DocumentEditor: React.FC = () => {
   const [pages, setPages] = useState<PageData[]>([
     { id: uuidv4(), elements: [] },
   ]);
+  
+  const [selectedElement, setSelectedElement] = useState<{ pageId: string; elementId: string } | null>(null);
 
   const addPage = () => {
     const newPageId = uuidv4();
@@ -41,6 +58,9 @@ const DocumentEditor: React.FC = () => {
 
   const deletePage = (id: string) => {
     setPages(prev => prev.filter(page => page.id !== id));
+    if (selectedElement?.pageId === id) {
+      setSelectedElement(null);
+    }
   };
 
   const handleTextChange = (id: string, newText: string) => {
@@ -49,6 +69,17 @@ const DocumentEditor: React.FC = () => {
         ...page,
         elements: page.elements.map(el =>
           el.id === id && el.type === 'text' ? { ...el, content: newText } : el
+        ),
+      }))
+    );
+  };
+
+  const handleTextFormatChange = (id: string, updatedText: Partial<ElementType>) => {
+    setPages(prev =>
+      prev.map(page => ({
+        ...page,
+        elements: page.elements.map(el =>
+          el.id === id && el.type === 'text' ? { ...el, ...updatedText } : el
         ),
       }))
     );
@@ -71,6 +102,9 @@ const DocumentEditor: React.FC = () => {
             );
           } else if (action === 'delete' && updatedElement) {
             newElements = newElements.filter(el => el.id !== updatedElement.id);
+            if (selectedElement?.elementId === updatedElement.id && selectedElement.pageId === pageId) {
+              setSelectedElement(null);
+            }
           }
           return { ...page, elements: newElements };
         }
@@ -79,23 +113,48 @@ const DocumentEditor: React.FC = () => {
     );
   };
 
-  // Identificar todos os textos
-  const allTexts = pages.flatMap(page =>
-    page.elements.filter(el => el.type === 'text')
-  );
+  const handleIconChange = (
+    pageId: string,
+    elementId: string,
+    newSrc: string
+  ) => {
+    setPages(prev =>
+      prev.map(page => {
+        if (page.id === pageId) {
+          const updatedElements = page.elements.map(el =>
+            el.id === elementId && el.type === 'icon' ? { ...el, src: newSrc } : el
+          );
+          return { ...page, elements: updatedElements };
+        }
+        return page;
+      })
+    );
+  };
 
-  // Identificar todas as formas
-  const allShapes = pages.flatMap(page =>
-    page.elements.filter(el => ['rectangle', 'square', 'circle', 'triangle', 'icon'].includes(el.type))
-  );
+  const handleImageChange = (
+    pageId: string,
+    elementId: string,
+    newSrc: string
+  ) => {
+    setPages(prev =>
+      prev.map(page => {
+        if (page.id === pageId) {
+          const updatedElements = page.elements.map(el =>
+            el.id === elementId && el.type === 'image' ? { ...el, src: newSrc } : el
+          );
+          return { ...page, elements: updatedElements };
+        }
+        return page;
+      })
+    );
+  };
 
-  // Função para alterar a cor de todas as formas de um grupo específico
   const handleShapeColorChange = (currentColor: string, newColor: string) => {
     setPages(prev =>
       prev.map(page => ({
         ...page,
         elements: page.elements.map(el =>
-          ['rectangle', 'square', 'circle', 'triangle', 'icon'].includes(el.type) && el.fill === currentColor
+          ['rectangle', 'square', 'circle', 'triangle'].includes(el.type) && el.fill === currentColor
             ? { ...el, fill: newColor }
             : el
         ),
@@ -103,49 +162,88 @@ const DocumentEditor: React.FC = () => {
     );
   };
 
+  // Coletar todas as imagens das páginas
+  const allImages: ImageWithPage[] = pages.flatMap(page =>
+    page.elements
+      .filter(el => el.type === 'image')
+      .map(el => ({ ...el, pageId: page.id }))
+  );
+
+  // Coletar todas as textos das páginas
+  const allTexts: TextWithPage[] = pages.flatMap(page =>
+    page.elements
+      .filter(el => el.type === 'text')
+      .map(el => ({ ...el, pageId: page.id }))
+  );
+
+  // Coletar todas as formas das páginas
+  const allShapes = pages.flatMap(page =>
+    page.elements.filter(el => ['rectangle', 'square', 'circle', 'triangle'].includes(el.type))
+  );
+
+  // Coletar todos os ícones das páginas
+  const allIcons: IconWithPage[] = pages.flatMap(page =>
+    page.elements
+      .filter(el => el.type === 'icon')
+      .map(el => ({ ...el, pageId: page.id }))
+  );
+
   return (
-    <div className="document-editor-container">
+    <div className={styles.documentEditorContainer}>
       <Toolbox />
-      <div className="editor-content">
-        <div className="pages-container">
-          {pages.map((pageData, index) => (
-            <div key={pageData.id} className="page-wrapper">
-              <Page
-                pageId={pageData.id}
-                width={A4_WIDTH}
-                height={A4_HEIGHT}
-                elements={pageData.elements}
-                onElementsChange={handleElementChange}
-              />
-              <div className="page-buttons">
-                <button
-                  onClick={() => duplicatePage(index)}
-                  className="duplicate-page-button"
-                  title="Duplicar Página"
-                >
-                  Duplicar Página
-                </button>
-                <button
-                  onClick={() => deletePage(pageData.id)}
-                  className="delete-page-button"
-                  title="Excluir Página"
-                >
-                  Excluir Página
-                </button>
+      <div className={styles.mainContent}>
+        <div className={styles.leftPanel}>
+          <div className={styles.pagesContainer}>
+            {pages.map((pageData, index) => (
+              <div key={pageData.id} className={styles.pageWrapper}>
+                <Page
+                  pageId={pageData.id}
+                  width={A4_WIDTH}
+                  height={A4_HEIGHT}
+                  elements={pageData.elements}
+                  onElementsChange={handleElementChange}
+                  selectedElement={selectedElement}
+                  setSelectedElement={setSelectedElement}
+                />
+                <div className={styles.pageButtons}>
+                  <button
+                    onClick={() => duplicatePage(index)}
+                    className={styles.duplicatePageButton}
+                    title="Duplicar Página"
+                  >
+                    Duplicar Página
+                  </button>
+                  <button
+                    onClick={() => deletePage(pageData.id)}
+                    className={styles.deletePageButton}
+                    title="Excluir Página"
+                  >
+                    Excluir Página
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <button onClick={addPage} className={styles.addPageButton}>
+            Adicionar Página
+          </button>
         </div>
-        <TextList
-          texts={allTexts}
-          shapes={allShapes}
-          onTextChange={handleTextChange}
-          onShapeColorChange={handleShapeColorChange}
-        />
+        <div className={styles.rightPanel}>
+          <TextList
+            texts={allTexts}
+            shapes={allShapes}
+            icons={allIcons}
+            images={allImages} // Passando as imagens para TextList
+            onTextChange={handleTextChange}
+            onShapeColorChange={handleShapeColorChange}
+            onTextFormatChange={handleTextFormatChange}
+            onIconChange={handleIconChange}
+            onImageChange={handleImageChange} // Passando a função de troca de imagens
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+          />
+        </div>
       </div>
-      <button onClick={addPage} className="add-page-button">
-        Adicionar Página
-      </button>
     </div>
   );
 };

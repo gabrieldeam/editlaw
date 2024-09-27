@@ -1,0 +1,31 @@
+.pageContainer {
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  position: relative;
+  margin-top: 80px;
+}
+
+.colorInput {
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.fontSizeInput {
+  width: 50px;
+  padding: 5px;
+}
+
+.textEditTextarea {
+  background: white;
+  border: 1px solid #ccc;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  width: 500px;
+  height: 100px;
+  margin-top: 40px;
+  position: absolute;
+  font-family: Arial, sans-serif;
+  z-index: 0;
+}

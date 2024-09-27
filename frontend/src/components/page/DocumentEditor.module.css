@@ -1,54 +1,56 @@
-/* src/components/page/DocumentEditor.css */
+/* DocumentEditor.module.css */
 
-.document-editor-container {
+.documentEditorContainer {
   width: 100%;
-  height: 100%;
+  height: 100vh; 
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 30px; /* Ajustado para compensar o Toolbox fixo */
-  padding-left: 20px;
-  padding-right: 20px;
   box-sizing: border-box;
-  min-height: 100vh;  
+  background-color: #f0f2f5;
 }
 
-.editor-content {
+.mainContent {
+  flex: 1;
   display: flex;
+  gap: 20px; /* Espaçamento entre os painéis esquerdo e direito */
+  overflow: hidden; /* Previne que o conteúdo ultrapasse os limites */
 }
 
-.pages-container {
+.leftPanel {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centraliza as páginas horizontalmente */
-  width: 70%; /* Ajuste para dar espaço ao TextList */
-  max-width: 800px; /* Define uma largura máxima para o documento */
-  margin-bottom: 20px;
-  margin-top: 20px;
+  padding: 20px;
 }
 
-.page-wrapper {
+.pagesContainer {
+  flex: 1;
+  overflow-y: auto; /* Adiciona rolagem vertical quando necessário */
+  padding: 20px;
+  margin-top: 110px;
+}
+
+.pageWrapper {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 20px 0;
-  border: 1px solid #ddd; /* Opcional: adiciona uma borda para cada página */
+  border: 1px solid #ddd;
   padding: 10px;
-  background-color: #f9f9f9; /* Opcional: adiciona um fundo claro */
+  background-color: #eeeeee;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Opcional: adiciona uma sombra suave */
-  width: 100%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.page-buttons {
+.pageButtons {
   display: flex;
   gap: 10px;
   margin-top: 10px;
 }
 
-.add-page-button {
-  margin: 10px;
+.addPageButton {
+  margin: 10px 0;
   padding: 10px 20px;
   cursor: pointer;
   border: 1px solid #007bff;
@@ -59,15 +61,15 @@
   font-size: 16px;
 }
 
-.add-page-button:hover {
+.addPageButton:hover {
   background-color: #0056b3;
 }
 
-.add-page-button:active {
+.addPageButton:active {
   transform: scale(0.95);
 }
 
-.duplicate-page-button {
+.duplicatePageButton {
   padding: 5px 10px;
   cursor: pointer;
   border: 1px solid #28a745;
@@ -78,15 +80,15 @@
   font-size: 14px;
 }
 
-.duplicate-page-button:hover {
+.duplicatePageButton:hover {
   background-color: #1e7e34;
 }
 
-.duplicate-page-button:active {
+.duplicatePageButton:active {
   transform: scale(0.95);
 }
 
-.delete-page-button {
+.deletePageButton {
   padding: 5px 10px;
   cursor: pointer;
   border: 1px solid #dc3545;
@@ -97,14 +99,23 @@
   font-size: 14px;
 }
 
-.delete-page-button:hover {
+.deletePageButton:hover {
   background-color: #c82333;
 }
 
-.delete-page-button:active {
+.deletePageButton:active {
   transform: scale(0.95);
 }
 
-.page-wrapper:hover {
-  border-color: #007bff; /* Opcional: muda a cor da borda ao passar o mouse */
+.pageWrapper:hover {
+  border-color: #007bff;
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
 }

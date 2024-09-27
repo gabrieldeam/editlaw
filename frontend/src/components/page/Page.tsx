@@ -1,12 +1,6 @@
-// src/components/page/Page.tsx
-
 'use client';
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Stage,
   Layer,
@@ -20,7 +14,7 @@ import {
 import useImage from 'use-image';
 import { KonvaEventObject } from 'konva/lib/Node';
 import jsPDF from 'jspdf';
-import './Page.css';
+import styles from './Page.module.css'; 
 import { v4 as uuidv4 } from 'uuid';
 
 export interface PageProps {
@@ -28,7 +22,13 @@ export interface PageProps {
   width: number;
   height: number;
   elements: ElementType[];
-  onElementsChange: (pageId: string, updatedElement: ElementType | null, action: 'add' | 'update' | 'delete') => void;
+  onElementsChange: (
+    pageId: string,
+    updatedElement: ElementType | null,
+    action: 'add' | 'update' | 'delete'
+  ) => void;
+  selectedElement: { pageId: string; elementId: string } | null;
+  setSelectedElement: React.Dispatch<React.SetStateAction<{ pageId: string; elementId: string } | null>>;
 }
 
 export interface ElementType {
@@ -48,6 +48,7 @@ export interface ElementType {
   rotation?: number; // Para todos os elementos
   radius?: number; // Para círculo e triângulo
   textType?: 'text' | 'paragraph'; // Diferencia tipos de texto
+  highlightColor?: string; // Cor de fundo para destacar o texto
 }
 
 const Page: React.FC<PageProps> = ({
@@ -56,49 +57,47 @@ const Page: React.FC<PageProps> = ({
   height,
   elements,
   onElementsChange,
+  selectedElement,
+  setSelectedElement,
 }) => {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingElement, setEditingElement] = useState<ElementType | null>(null);
-  const [textareaPosition, setTextareaPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [textareaPosition, setTextareaPosition] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
   const stageRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Estado para controlar a escala
   const [scale, setScale] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
 
-  // Função para calcular a escala baseada no tamanho do contêiner
   const computeScale = () => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
 
-      // Calcular a escala baseada na largura e altura disponíveis
       const scaleX = containerWidth / width;
       const scaleY = containerHeight / height;
 
-      // Escolher o menor fator de escala para manter a proporção
-      const newScale = Math.min(scaleX, scaleY, 1); // Não escala acima de 1
+      const newScale = Math.min(scaleX, scaleY, 1);
 
       setScale({ x: newScale, y: newScale });
     }
   };
 
-  // Calcular a escala ao montar e ao redimensionar o contêiner
   useEffect(() => {
     computeScale();
     window.addEventListener('resize', computeScale);
     return () => window.removeEventListener('resize', computeScale);
   }, [width, height]);
 
-  // Atualizar o Transformer sempre que selectedId ou elements mudarem
   useEffect(() => {
     if (transformerRef.current) {
-      if (selectedId) {
+      if (selectedElement && selectedElement.pageId === pageId) {
         const stage = stageRef.current;
-        const selectedNode = stage.findOne('#' + selectedId);
+        const selectedNode = stage.findOne('#' + selectedElement.elementId);
         if (selectedNode) {
           transformerRef.current.nodes([selectedNode]);
           transformerRef.current.getLayer().batchDraw();
@@ -108,16 +107,13 @@ const Page: React.FC<PageProps> = ({
         transformerRef.current.getLayer().batchDraw();
       }
     }
-  }, [selectedId, elements]);
+  }, [selectedElement, elements, pageId]);
 
-  // Handle drop de elementos na stage
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const type = e.dataTransfer.getData('elementType') as ElementType['type'];
 
-    // Para textos, obter o tipo de texto
     const textType = e.dataTransfer.getData('textType') as 'text' | 'paragraph';
-
     const imageSrc = e.dataTransfer.getData('imageSrc');
     const shapeColor = e.dataTransfer.getData('shapeColor') || '#000000';
     const iconSrc = e.dataTransfer.getData('iconSrc');
@@ -135,11 +131,11 @@ const Page: React.FC<PageProps> = ({
         x,
         y,
         content: textType === 'paragraph' ? 'Novo parágrafo' : 'Novo texto',
-        fontSize: textType === 'paragraph' ? 14 : 16, // Tamanho de fonte diferente para parágrafo
+        fontSize: textType === 'paragraph' ? 14 : 16,
         bold: false,
         italic: false,
         underline: false,
-        textType, // Armazenar o tipo de texto
+        textType,
       };
       onElementsChange(pageId, newElement, 'add');
     } else if (type === 'image' && imageSrc) {
@@ -151,7 +147,6 @@ const Page: React.FC<PageProps> = ({
         let imgWidth = img.width;
         let imgHeight = img.height;
 
-        // Redimensionar se necessário
         if (imgWidth > maxWidth) {
           const ratio = maxWidth / imgWidth;
           imgWidth = maxWidth;
@@ -201,7 +196,6 @@ const Page: React.FC<PageProps> = ({
     }
   };
 
-  // Iniciar edição de texto
   const handleTextEdit = (el: ElementType) => {
     const textNode = stageRef.current.findOne('#' + el.id);
     const textPosition = textNode.getAbsolutePosition();
@@ -217,77 +211,28 @@ const Page: React.FC<PageProps> = ({
     setEditingElement(el);
   };
 
-  // Funções de formatação
-  const toggleBold = () => {
-    if (selectedId) {
-      const element = elements.find(el => el.id === selectedId);
-      if (element) {
-        onElementsChange(pageId, { ...element, bold: !element.bold }, 'update');
-      }
-    }
-  };
-
-  const toggleItalic = () => {
-    if (selectedId) {
-      const element = elements.find(el => el.id === selectedId);
-      if (element) {
-        onElementsChange(pageId, { ...element, italic: !element.italic }, 'update');
-      }
-    }
-  };
-
-  const toggleUnderline = () => {
-    if (selectedId) {
-      const element = elements.find(el => el.id === selectedId);
-      if (element) {
-        onElementsChange(pageId, { ...element, underline: !element.underline }, 'update');
-      }
-    }
-  };
-
-  const changeFillColor = (color: string) => {
-    if (selectedId) {
-      const element = elements.find(el => el.id === selectedId);
-      if (element) {
-        onElementsChange(pageId, { ...element, fill: color }, 'update');
-      }
-    }
-  };
-
-  const changeFontSize = (size: number) => {
-    if (selectedId) {
-      const element = elements.find(el => el.id === selectedId);
-      if (element) {
-        onElementsChange(pageId, { ...element, fontSize: size }, 'update');
-      }
-    }
-  };
-
-  // Handle Delete key para remover elementos
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' && selectedId) {
-        const elementToDelete = elements.find(el => el.id === selectedId);
+      if (e.key === 'Delete' && selectedElement && selectedElement.pageId === pageId) {
+        const elementToDelete = elements.find(el => el.id === selectedElement.elementId);
         if (elementToDelete) {
           onElementsChange(pageId, elementToDelete, 'delete');
         }
-        setSelectedId(null);
+        setSelectedElement(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedId, elements, pageId, onElementsChange]);
+  }, [selectedElement, elements, pageId, onElementsChange, setSelectedElement]);
 
-  // Handle click na stage para deselecionar
   const handleStageClick = (e: any) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
-      setSelectedId(null);
+      setSelectedElement(null);
     }
   };
 
-  // Escutar evento 'generate-pdf' para gerar PDF
   useEffect(() => {
     const handleGeneratePDF = () => {
       const pdf = new jsPDF('portrait', 'pt', 'a4');
@@ -310,52 +255,71 @@ const Page: React.FC<PageProps> = ({
     return () => window.removeEventListener('generate-pdf', handleGeneratePDF as EventListener);
   }, []);
 
-  // Componente separado para elementos de texto
   const TextElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const fontStyle = `${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim();
 
+    // Calcula a largura aproximada do texto com base no tamanho da fonte e no conteúdo
+    const calculateTextWidth = (content: string | undefined, fontSize: number) => {
+      if (!content) return 0;
+      // Fator de escala para largura do texto com base na fonte e na média de largura das letras
+      const averageCharWidth = fontSize * 0.5; 
+      return content.length * averageCharWidth;
+    };
+
     return (
-      <KonvaTextElement
-        id={el.id}
-        x={el.x}
-        y={el.y}
-        text={el.content || ''}
-        fontSize={el.fontSize || 16}
-        fontStyle={fontStyle}
-        underline={el.underline}
-        fill={el.fill || 'black'}
-        width={el.textType === 'paragraph' ? width - el.x - 40 : undefined} // Sem largura para 'text'
-        align="left"
-        draggable
-        onClick={() => setSelectedId(el.id)}
-        onTap={() => setSelectedId(el.id)}
-        onDblClick={() => handleTextEdit(el)}
-        onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-          onElementsChange(pageId, updatedElement, 'update');
-        }}
-        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
-          const node = e.target;
-          const scaleY = node.scaleY();
+      <>
+        {/* Renderizando o texto */}
+        <KonvaTextElement
+          id={el.id}
+          x={el.x}
+          y={el.y}
+          text={el.content || ''}
+          fontSize={el.fontSize || 16}
+          fontStyle={fontStyle}
+          fill={el.fill || 'black'}
+          width={el.textType === 'paragraph' ? width - el.x - 40 : undefined}
+          align="left"
+          draggable
+          onClick={() => setSelectedElement({ pageId, elementId: el.id })}
+          onTap={() => setSelectedElement({ pageId, elementId: el.id })}
+          onDblClick={() => handleTextEdit(el)}
+          onDragEnd={(e: KonvaEventObject<DragEvent>) => {
+            const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+            onElementsChange(pageId, updatedElement, 'update');
+          }}
+          onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+            const node = e.target;
+            const scaleY = node.scaleY();
 
-          // Reset scale
-          node.scaleX(1);
-          node.scaleY(1);
+            node.scaleX(1);
+            node.scaleY(1);
 
-          const updatedElement: ElementType = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            rotation: node.rotation(),
-            fontSize: Math.max((el.fontSize || 16) * scaleY, 8), // Evita fontSize muito pequeno
-          };
-          onElementsChange(pageId, updatedElement, 'update');
-        }}
-      />
+            const updatedElement: ElementType = {
+              ...el,
+              x: node.x(),
+              y: node.y(),
+              rotation: node.rotation(),
+              fontSize: Math.max((el.fontSize || 16) * scaleY, 8),
+            };
+            onElementsChange(pageId, updatedElement, 'update');
+          }}
+        />
+        {/* Desenhando a linha de sublinhado */}
+        {el.underline && (
+          <Rect
+            x={el.x}
+            y={el.y + (el.fontSize || 16) + 2} // Posiciona a linha logo abaixo do texto
+            width={calculateTextWidth(el.content, el.fontSize || 16)} // Calcula a largura com base no conteúdo
+            height={1} // Altura da linha (espessura do sublinhado)
+            fill={el.fill || 'black'}
+            listening={false} // Não permite interações
+          />
+        )}
+      </>
     );
   };
+  
 
-  // Componente separado para elementos de imagem
   const ImageElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
@@ -369,8 +333,8 @@ const Page: React.FC<PageProps> = ({
         height={el.height || 100}
         rotation={el.rotation || 0}
         draggable
-        onClick={() => setSelectedId(el.id)}
-        onTap={() => setSelectedId(el.id)}
+        onClick={() => setSelectedElement({ pageId, elementId: el.id })}
+        onTap={() => setSelectedElement({ pageId, elementId: el.id })}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
           const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
           onElementsChange(pageId, updatedElement, 'update');
@@ -380,7 +344,6 @@ const Page: React.FC<PageProps> = ({
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
-          // Reset scale
           node.scaleX(1);
           node.scaleY(1);
 
@@ -389,8 +352,8 @@ const Page: React.FC<PageProps> = ({
             x: node.x(),
             y: node.y(),
             rotation: node.rotation(),
-            width: Math.max(node.width() * scaleX, 10), // Evita largura muito pequena
-            height: Math.max(node.height() * scaleY, 10), // Evita altura muito pequena
+            width: Math.max(node.width() * scaleX, 10),
+            height: Math.max(node.height() * scaleY, 10),
           };
           onElementsChange(pageId, updatedElement, 'update');
         }}
@@ -398,7 +361,6 @@ const Page: React.FC<PageProps> = ({
     );
   };
 
-  // Componente separado para elementos de forma (retângulo, quadrado, círculo, triângulo)
   const ShapeElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const commonProps = {
       id: el.id,
@@ -407,8 +369,8 @@ const Page: React.FC<PageProps> = ({
       fill: el.fill || '#000000',
       draggable: true,
       rotation: el.rotation || 0,
-      onClick: () => setSelectedId(el.id),
-      onTap: () => setSelectedId(el.id),
+      onClick: () => setSelectedElement({ pageId, elementId: el.id }),
+      onTap: () => setSelectedElement({ pageId, elementId: el.id }),
       onDragEnd: (e: KonvaEventObject<DragEvent>) => {
         const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
         onElementsChange(pageId, updatedElement, 'update');
@@ -418,7 +380,6 @@ const Page: React.FC<PageProps> = ({
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
 
-        // Reset scale
         node.scaleX(1);
         node.scaleY(1);
 
@@ -467,42 +428,18 @@ const Page: React.FC<PageProps> = ({
 
     switch (el.type) {
       case 'rectangle':
-        return (
-          <Rect
-            {...commonProps}
-            width={el.width || 100}
-            height={el.height || 100}
-          />
-        );
+        return <Rect {...commonProps} width={el.width || 100} height={el.height || 100} />;
       case 'square':
-        return (
-          <Rect
-            {...commonProps}
-            width={el.width || 100}
-            height={el.width || 100} // Garante que a altura seja igual à largura
-          />
-        );
+        return <Rect {...commonProps} width={el.width || 100} height={el.width || 100} />;
       case 'circle':
-        return (
-          <Circle
-            {...commonProps}
-            radius={el.radius || 50}
-          />
-        );
+        return <Circle {...commonProps} radius={el.radius || 50} />;
       case 'triangle':
-        return (
-          <RegularPolygon
-            {...commonProps}
-            sides={3}
-            radius={el.radius || 50}
-          />
-        );
+        return <RegularPolygon {...commonProps} sides={3} radius={el.radius || 50} />;
       default:
         return null;
     }
   };
 
-  // Componente separado para elementos de ícone
   const IconElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
@@ -516,8 +453,8 @@ const Page: React.FC<PageProps> = ({
         height={el.height || 50}
         rotation={el.rotation || 0}
         draggable
-        onClick={() => setSelectedId(el.id)}
-        onTap={() => setSelectedId(el.id)}
+        onClick={() => setSelectedElement({ pageId, elementId: el.id })}
+        onTap={() => setSelectedElement({ pageId, elementId: el.id })}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
           const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
           onElementsChange(pageId, updatedElement, 'update');
@@ -527,7 +464,6 @@ const Page: React.FC<PageProps> = ({
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
-          // Reset scale
           node.scaleX(1);
           node.scaleY(1);
 
@@ -547,10 +483,10 @@ const Page: React.FC<PageProps> = ({
 
   return (
     <div
-      className="page-container"
+      className={styles.pageContainer} // Atualizado para usar CSS Modules
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      ref={containerRef} // Referência para o contêiner
+      ref={containerRef}
     >
       <Stage
         width={width}
@@ -558,13 +494,11 @@ const Page: React.FC<PageProps> = ({
         ref={stageRef}
         onClick={handleStageClick}
         onTap={handleStageClick}
-        scale={scale} // Aplicar a escala calculada
+        scale={scale}
       >
         <Layer>
-          {/* Background com 'listening' desativado */}
           <Rect x={0} y={0} width={width} height={height} fill="white" listening={false} />
 
-          {/* Renderizar elementos */}
           {elements.map((el) => {
             switch (el.type) {
               case 'text':
@@ -583,11 +517,10 @@ const Page: React.FC<PageProps> = ({
             }
           })}
 
-          {/* Transformer para redimensionar e rotacionar */}
-          {selectedId && (
+          {selectedElement && selectedElement.pageId === pageId && (
             <Transformer
               ref={transformerRef}
-              nodes={[stageRef.current.findOne('#' + selectedId)]}
+              nodes={[stageRef.current.findOne('#' + selectedElement.elementId)]}
               enabledAnchors={[
                 'top-left',
                 'top-right',
@@ -599,16 +532,15 @@ const Page: React.FC<PageProps> = ({
                 'bottom-center',
               ]}
               rotateEnabled={true}
-              boundBoxFunc={(oldBox, newBox) => newBox} // Permite redimensionamento livre
+              boundBoxFunc={(oldBox, newBox) => newBox}
             />
           )}
         </Layer>
       </Stage>
 
-      {/* Edição de Texto */}
       {isEditing && editingElement && (
         <textarea
-          className="text-edit-textarea"
+          className={styles.textEditTextarea} // Atualizado para usar CSS Modules
           style={{
             top: textareaPosition.y,
             left: textareaPosition.x,
@@ -633,63 +565,6 @@ const Page: React.FC<PageProps> = ({
           }}
           autoFocus
         />
-      )}
-
-      {/* Barra de Formatação */}
-      {selectedId && elements.find((el) => el.id === selectedId)?.type === 'text' && (
-        <div
-          className="formatting-bar"
-          style={{
-            top: textareaPosition.y - 40 * scale.y, // Posiciona acima do textarea com escala
-            left: textareaPosition.x,
-            transform: `scale(${1 / scale.x}, ${1 / scale.y})`, // Inverte a escala para manter o tamanho da barra
-            transformOrigin: 'top left',
-          }}
-        >
-          <button
-            className={`formatting-button formatting-button-bold ${
-              elements.find(el => el.id === selectedId)?.bold ? 'active' : ''
-            }`}
-            onClick={toggleBold}
-            title="Negrito"
-          >
-            B
-          </button>
-          <button
-            className={`formatting-button formatting-button-italic ${
-              elements.find(el => el.id === selectedId)?.italic ? 'active' : ''
-            }`}
-            onClick={toggleItalic}
-            title="Itálico"
-          >
-            I
-          </button>
-          <button
-            className={`formatting-button formatting-button-underline ${
-              elements.find(el => el.id === selectedId)?.underline ? 'active' : ''
-            }`}
-            onClick={toggleUnderline}
-            title="Sublinhado"
-          >
-            U
-          </button>
-          <input
-            type="color"
-            className="color-input"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => changeFillColor(e.target.value)}
-            value={elements.find((el) => el.id === selectedId)?.fill || '#000000'}
-            title="Cor do Texto"
-          />
-          <input
-            type="number"
-            className="font-size-input"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => changeFontSize(Number(e.target.value))}
-            value={elements.find((el) => el.id === selectedId)?.fontSize || 16}
-            min={8}
-            max={72}
-            title="Tamanho da Fonte"
-          />
-        </div>
       )}
     </div>
   );

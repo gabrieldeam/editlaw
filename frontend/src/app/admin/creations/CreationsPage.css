@@ -3,13 +3,11 @@
 .creations-page-container {
   width: 100%;
   margin: 0 auto; 
-  padding: 20px;
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .creations-page-container {
-    padding: 0;
     max-width: 100%; /* Remove a largura máxima para mobile */
   }
 }
