@@ -4,10 +4,8 @@
 
 import React, {
   useState,
-  forwardRef,
   useRef,
   useEffect,
-  useImperativeHandle,
 } from 'react';
 import {
   Stage,
@@ -26,8 +24,11 @@ import './Page.css';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface PageProps {
+  pageId: string;
   width: number;
   height: number;
+  elements: ElementType[];
+  onElementsChange: (pageId: string, updatedElement: ElementType | null, action: 'add' | 'update' | 'delete') => void;
 }
 
 export interface ElementType {
@@ -49,8 +50,13 @@ export interface ElementType {
   textType?: 'text' | 'paragraph'; // Diferencia tipos de texto
 }
 
-const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
-  const [elements, setElements] = useState<ElementType[]>([]);
+const Page: React.FC<PageProps> = ({
+  pageId,
+  width,
+  height,
+  elements,
+  onElementsChange,
+}) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingElement, setEditingElement] = useState<ElementType | null>(null);
@@ -58,13 +64,34 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
 
   const stageRef = useRef<any>(null);
   const transformerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Expor métodos via ref
-  useImperativeHandle(ref, () => ({
-    stage: stageRef.current,
-    getElements: () => elements,
-    setElements: (newElements: ElementType[]) => setElements(newElements),
-  }));
+  // Estado para controlar a escala
+  const [scale, setScale] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
+
+  // Função para calcular a escala baseada no tamanho do contêiner
+  const computeScale = () => {
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+
+      // Calcular a escala baseada na largura e altura disponíveis
+      const scaleX = containerWidth / width;
+      const scaleY = containerHeight / height;
+
+      // Escolher o menor fator de escala para manter a proporção
+      const newScale = Math.min(scaleX, scaleY, 1); // Não escala acima de 1
+
+      setScale({ x: newScale, y: newScale });
+    }
+  };
+
+  // Calcular a escala ao montar e ao redimensionar o contêiner
+  useEffect(() => {
+    computeScale();
+    window.addEventListener('resize', computeScale);
+    return () => window.removeEventListener('resize', computeScale);
+  }, [width, height]);
 
   // Atualizar o Transformer sempre que selectedId ou elements mudarem
   useEffect(() => {
@@ -94,9 +121,12 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
     const imageSrc = e.dataTransfer.getData('imageSrc');
     const shapeColor = e.dataTransfer.getData('shapeColor') || '#000000';
     const iconSrc = e.dataTransfer.getData('iconSrc');
-    const rect = stageRef.current.container().getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = (e.clientX - rect.left) / scale.x;
+    const y = (e.clientY - rect.top) / scale.y;
 
     if (type === 'text') {
       const newElement: ElementType = {
@@ -111,7 +141,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         underline: false,
         textType, // Armazenar o tipo de texto
       };
-      setElements(prev => [...prev, newElement]);
+      onElementsChange(pageId, newElement, 'add');
     } else if (type === 'image' && imageSrc) {
       const img = new Image();
       img.src = imageSrc;
@@ -142,7 +172,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
           width: imgWidth,
           height: imgHeight,
         };
-        setElements(prev => [...prev, newElement]);
+        onElementsChange(pageId, newElement, 'add');
       };
     } else if (['rectangle', 'square', 'circle', 'triangle'].includes(type)) {
       const defaultSize = type === 'square' ? 100 : type === 'circle' ? 50 : 100;
@@ -156,7 +186,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         height: type === 'circle' ? undefined : defaultSize,
         radius: type === 'circle' ? 50 : type === 'triangle' ? 50 : undefined,
       };
-      setElements(prev => [...prev, newElement]);
+      onElementsChange(pageId, newElement, 'add');
     } else if (type === 'icon' && iconSrc) {
       const newElement: ElementType = {
         id: uuidv4(),
@@ -167,7 +197,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         width: 50,
         height: 50,
       };
-      setElements(prev => [...prev, newElement]);
+      onElementsChange(pageId, newElement, 'add');
     }
   };
 
@@ -175,11 +205,13 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   const handleTextEdit = (el: ElementType) => {
     const textNode = stageRef.current.findOne('#' + el.id);
     const textPosition = textNode.getAbsolutePosition();
-    const stageBox = stageRef.current.container().getBoundingClientRect();
+    const stageBox = containerRef.current?.getBoundingClientRect();
+
+    if (!stageBox) return;
 
     setTextareaPosition({
-      x: stageBox.left + textPosition.x,
-      y: stageBox.top + textPosition.y,
+      x: stageBox.left + textPosition.x * scale.x,
+      y: stageBox.top + textPosition.y * scale.y,
     });
     setIsEditing(true);
     setEditingElement(el);
@@ -188,56 +220,46 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   // Funções de formatação
   const toggleBold = () => {
     if (selectedId) {
-      const newElements = elements.map((elem) =>
-        elem.id === selectedId
-          ? { ...elem, bold: !elem.bold }
-          : elem
-      );
-      setElements(newElements);
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        onElementsChange(pageId, { ...element, bold: !element.bold }, 'update');
+      }
     }
   };
 
   const toggleItalic = () => {
     if (selectedId) {
-      const newElements = elements.map((elem) =>
-        elem.id === selectedId
-          ? { ...elem, italic: !elem.italic }
-          : elem
-      );
-      setElements(newElements);
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        onElementsChange(pageId, { ...element, italic: !element.italic }, 'update');
+      }
     }
   };
 
   const toggleUnderline = () => {
     if (selectedId) {
-      const newElements = elements.map((elem) =>
-        elem.id === selectedId
-          ? { ...elem, underline: !elem.underline }
-          : elem
-      );
-      setElements(newElements);
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        onElementsChange(pageId, { ...element, underline: !element.underline }, 'update');
+      }
     }
   };
 
   const changeFillColor = (color: string) => {
     if (selectedId) {
-      const newElements = elements.map((elem) =>
-        elem.id === selectedId
-          ? { ...elem, fill: color }
-          : elem
-      );
-      setElements(newElements);
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        onElementsChange(pageId, { ...element, fill: color }, 'update');
+      }
     }
   };
 
   const changeFontSize = (size: number) => {
     if (selectedId) {
-      const newElements = elements.map((elem) =>
-        elem.id === selectedId
-          ? { ...elem, fontSize: size }
-          : elem
-      );
-      setElements(newElements);
+      const element = elements.find(el => el.id === selectedId);
+      if (element) {
+        onElementsChange(pageId, { ...element, fontSize: size }, 'update');
+      }
     }
   };
 
@@ -245,14 +267,17 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' && selectedId) {
-        setElements(prev => prev.filter(elem => elem.id !== selectedId));
+        const elementToDelete = elements.find(el => el.id === selectedId);
+        if (elementToDelete) {
+          onElementsChange(pageId, elementToDelete, 'delete');
+        }
         setSelectedId(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedId]);
+  }, [selectedId, elements, pageId, onElementsChange]);
 
   // Handle click na stage para deselecionar
   const handleStageClick = (e: any) => {
@@ -286,7 +311,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   }, []);
 
   // Componente separado para elementos de texto
-  const TextElement = ({ el }: { el: ElementType }) => {
+  const TextElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const fontStyle = `${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim();
 
     return (
@@ -299,48 +324,39 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         fontStyle={fontStyle}
         underline={el.underline}
         fill={el.fill || 'black'}
-        width={el.textType === 'paragraph' ? width - el.x - 20 : undefined} // Sem largura para 'text'
+        width={el.textType === 'paragraph' ? width - el.x - 40 : undefined} // Sem largura para 'text'
         align="left"
         draggable
         onClick={() => setSelectedId(el.id)}
         onTap={() => setSelectedId(el.id)}
         onDblClick={() => handleTextEdit(el)}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? { ...elem, x: e.target.x(), y: e.target.y() }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
         onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
           const node = e.target;
-          const scaleX = node.scaleX();
           const scaleY = node.scaleY();
 
           // Reset scale
           node.scaleX(1);
           node.scaleY(1);
 
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? {
-                  ...elem,
-                  x: node.x(),
-                  y: node.y(),
-                  rotation: node.rotation(),
-                  fontSize: (el.fontSize || 16) * scaleY,
-                }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            fontSize: Math.max((el.fontSize || 16) * scaleY, 8), // Evita fontSize muito pequeno
+          };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
       />
     );
   };
 
   // Componente separado para elementos de imagem
-  const ImageElement = ({ el }: { el: ElementType }) => {
+  const ImageElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
     return (
@@ -356,12 +372,8 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         onClick={() => setSelectedId(el.id)}
         onTap={() => setSelectedId(el.id)}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? { ...elem, x: e.target.x(), y: e.target.y() }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
         onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
           const node = e.target;
@@ -372,26 +384,22 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
           node.scaleX(1);
           node.scaleY(1);
 
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? {
-                  ...elem,
-                  x: node.x(),
-                  y: node.y(),
-                  rotation: node.rotation(),
-                  width: node.width() * scaleX,
-                  height: node.height() * scaleY,
-                }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            width: Math.max(node.width() * scaleX, 10), // Evita largura muito pequena
+            height: Math.max(node.height() * scaleY, 10), // Evita altura muito pequena
+          };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
       />
     );
   };
 
   // Componente separado para elementos de forma (retângulo, quadrado, círculo, triângulo)
-  const ShapeElement = ({ el }: { el: ElementType }) => {
+  const ShapeElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const commonProps = {
       id: el.id,
       x: el.x,
@@ -402,12 +410,8 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
       onClick: () => setSelectedId(el.id),
       onTap: () => setSelectedId(el.id),
       onDragEnd: (e: KonvaEventObject<DragEvent>) => {
-        const newElements = elements.map((elem) =>
-          elem.id === el.id
-            ? { ...elem, x: e.target.x(), y: e.target.y() }
-            : elem
-        );
-        setElements(newElements);
+        const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+        onElementsChange(pageId, updatedElement, 'update');
       },
       onTransformEnd: (e: KonvaEventObject<MouseEvent>) => {
         const node = e.target;
@@ -418,48 +422,46 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         node.scaleX(1);
         node.scaleY(1);
 
-        const newElements = elements.map((elem) => {
-          if (elem.id === el.id) {
-            if (elem.type === 'circle') {
-              return {
-                ...elem,
-                x: node.x(),
-                y: node.y(),
-                rotation: node.rotation(),
-                radius: (el.radius || 50) * scaleX,
-              };
-            } else if (elem.type === 'triangle') {
-              return {
-                ...elem,
-                x: node.x(),
-                y: node.y(),
-                rotation: node.rotation(),
-                radius: (el.radius || 50) * scaleX,
-              };
-            } else if (elem.type === 'square') {
-              const newSize = (el.width || 100) * scaleX;
-              return {
-                ...elem,
-                x: node.x(),
-                y: node.y(),
-                rotation: node.rotation(),
-                width: newSize,
-                height: newSize,
-              };
-            } else if (elem.type === 'rectangle') {
-              return {
-                ...elem,
-                x: node.x(),
-                y: node.y(),
-                rotation: node.rotation(),
-                width: (el.width || 100) * scaleX,
-                height: (el.height || 100) * scaleY,
-              };
-            }
-          }
-          return elem;
-        });
-        setElements(newElements);
+        let updatedElement: ElementType = { ...el };
+
+        if (el.type === 'circle') {
+          updatedElement = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            radius: Math.max((el.radius || 50) * scaleX, 10),
+          };
+        } else if (el.type === 'triangle') {
+          updatedElement = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            radius: Math.max((el.radius || 50) * scaleX, 10),
+          };
+        } else if (el.type === 'square') {
+          const newSize = Math.max((el.width || 100) * scaleX, 10);
+          updatedElement = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            width: newSize,
+            height: newSize,
+          };
+        } else if (el.type === 'rectangle') {
+          updatedElement = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            width: Math.max((el.width || 100) * scaleX, 10),
+            height: Math.max((el.height || 100) * scaleY, 10),
+          };
+        }
+
+        onElementsChange(pageId, updatedElement, 'update');
       },
     };
 
@@ -501,7 +503,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
   };
 
   // Componente separado para elementos de ícone
-  const IconElement = ({ el }: { el: ElementType }) => {
+  const IconElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const [image] = useImage(el.src || '', 'anonymous');
 
     return (
@@ -517,12 +519,8 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         onClick={() => setSelectedId(el.id)}
         onTap={() => setSelectedId(el.id)}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? { ...elem, x: e.target.x(), y: e.target.y() }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
         onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
           const node = e.target;
@@ -533,19 +531,15 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
           node.scaleX(1);
           node.scaleY(1);
 
-          const newElements = elements.map((elem) =>
-            elem.id === el.id
-              ? {
-                  ...elem,
-                  x: node.x(),
-                  y: node.y(),
-                  rotation: node.rotation(),
-                  width: (el.width || 50) * scaleX,
-                  height: (el.height || 50) * scaleY,
-                }
-              : elem
-          );
-          setElements(newElements);
+          const updatedElement: ElementType = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            width: Math.max((el.width || 50) * scaleX, 10),
+            height: Math.max((el.height || 50) * scaleY, 10),
+          };
+          onElementsChange(pageId, updatedElement, 'update');
         }}
       />
     );
@@ -556,6 +550,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
       className="page-container"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
+      ref={containerRef} // Referência para o contêiner
     >
       <Stage
         width={width}
@@ -563,6 +558,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         ref={stageRef}
         onClick={handleStageClick}
         onTap={handleStageClick}
+        scale={scale} // Aplicar a escala calculada
       >
         <Layer>
           {/* Background com 'listening' desativado */}
@@ -570,16 +566,21 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
 
           {/* Renderizar elementos */}
           {elements.map((el) => {
-            if (el.type === 'text') {
-              return <TextElement key={el.id} el={el} />;
-            } else if (el.type === 'image') {
-              return <ImageElement key={el.id} el={el} />;
-            } else if (['rectangle', 'square', 'circle', 'triangle'].includes(el.type)) {
-              return <ShapeElement key={el.id} el={el} />;
-            } else if (el.type === 'icon') {
-              return <IconElement key={el.id} el={el} />;
+            switch (el.type) {
+              case 'text':
+                return <TextElement key={el.id} el={el} />;
+              case 'image':
+                return <ImageElement key={el.id} el={el} />;
+              case 'rectangle':
+              case 'square':
+              case 'circle':
+              case 'triangle':
+                return <ShapeElement key={el.id} el={el} />;
+              case 'icon':
+                return <IconElement key={el.id} el={el} />;
+              default:
+                return null;
             }
-            return null;
           })}
 
           {/* Transformer para redimensionar e rotacionar */}
@@ -625,10 +626,7 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
           }}
           onBlur={() => {
             if (editingElement) {
-              const newElements = elements.map((elem) =>
-                elem.id === editingElement.id ? editingElement : elem
-              );
-              setElements(newElements);
+              onElementsChange(pageId, editingElement, 'update');
               setIsEditing(false);
               setEditingElement(null);
             }
@@ -642,8 +640,10 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
         <div
           className="formatting-bar"
           style={{
-            top: textareaPosition.y - 40, // Posiciona acima do textarea
+            top: textareaPosition.y - 40 * scale.y, // Posiciona acima do textarea com escala
             left: textareaPosition.x,
+            transform: `scale(${1 / scale.x}, ${1 / scale.y})`, // Inverte a escala para manter o tamanho da barra
+            transformOrigin: 'top left',
           }}
         >
           <button
@@ -693,6 +693,6 @@ const Page = forwardRef<any, PageProps>(({ width, height }, ref) => {
       )}
     </div>
   );
-});
+};
 
 export default Page;

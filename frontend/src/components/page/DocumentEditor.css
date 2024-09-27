@@ -1,19 +1,27 @@
 /* src/components/page/DocumentEditor.css */
 
 .document-editor-container {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 80px; /* Ajustado para compensar o Toolbox fixo */
+  padding-top: 30px; /* Ajustado para compensar o Toolbox fixo */
   padding-left: 20px;
   padding-right: 20px;
+  box-sizing: border-box;
+  min-height: 100vh;  
+}
+
+.editor-content {
+  display: flex;
 }
 
 .pages-container {
   display: flex;
   flex-direction: column;
   align-items: center; /* Centraliza as páginas horizontalmente */
-  width: 100%;
+  width: 70%; /* Ajuste para dar espaço ao TextList */
   max-width: 800px; /* Define uma largura máxima para o documento */
   margin-bottom: 20px;
   margin-top: 20px;
@@ -30,6 +38,7 @@
   background-color: #f9f9f9; /* Opcional: adiciona um fundo claro */
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Opcional: adiciona uma sombra suave */
+  width: 100%;
 }
 
 .page-buttons {
@@ -46,12 +55,16 @@
   border-radius: 4px;
   background-color: #007bff;
   color: #fff;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
   font-size: 16px;
 }
 
 .add-page-button:hover {
   background-color: #0056b3;
+}
+
+.add-page-button:active {
+  transform: scale(0.95);
 }
 
 .duplicate-page-button {
@@ -61,12 +74,16 @@
   border-radius: 4px;
   background-color: #28a745;
   color: #fff;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
   font-size: 14px;
 }
 
 .duplicate-page-button:hover {
   background-color: #1e7e34;
+}
+
+.duplicate-page-button:active {
+  transform: scale(0.95);
 }
 
 .delete-page-button {
@@ -76,12 +93,16 @@
   border-radius: 4px;
   background-color: #dc3545;
   color: #fff;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
   font-size: 14px;
 }
 
 .delete-page-button:hover {
   background-color: #c82333;
+}
+
+.delete-page-button:active {
+  transform: scale(0.95);
 }
 
 .page-wrapper:hover {

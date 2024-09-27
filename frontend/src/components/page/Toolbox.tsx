@@ -12,10 +12,10 @@ type IconType = {
 
 // Predefined list of icons with image URLs
 const iconLibrary: IconType[] = [
-  { name: 'Beer', src: 'https://img.icons8.com/emoji/48/000000/beer-mug-emoji.png' },
-  { name: 'Coffee', src: 'https://img.icons8.com/emoji/48/000000/hot-beverage-emoji.png' },
-  { name: 'Apple', src: 'https://img.icons8.com/emoji/48/000000/apple-emoji.png' },
-  { name: 'Android', src: 'https://img.icons8.com/emoji/48/000000/android-emoji.png' },
+  { name: 'Doc', src: 'https://img.icons8.com/?size=100&id=b0vfoq4G1DH5&format=png&color=000000' },
+  { name: 'Close', src: 'https://img.icons8.com/?size=100&id=GhvBtzNnBL71&format=png&color=000000' },
+  { name: 'Done', src: 'https://img.icons8.com/?size=100&id=n1nME5z0SPXi&format=png&color=000000' },
+  { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
   { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
 ];
 
