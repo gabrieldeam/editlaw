@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { ElementType } from './Page'; // Assegure-se de que esta interface esteja corretamente definida
 import styles from './TextList.module.css'; // Usando CSS Modules
 import { ChromePicker } from 'react-color';
+import { iconLibrary, IconType } from './iconLibrary';
 
 // Definição das interfaces
 interface TextWithPage extends ElementType {
@@ -18,19 +19,7 @@ interface ImageWithPage extends ElementType {
   pageId: string;
 }
 
-type IconType = {
-  name: string;
-  src: string;
-};
 
-// Biblioteca de ícones
-const iconLibrary: IconType[] = [
-  { name: 'Doc', src: 'https://img.icons8.com/?size=100&id=b0vfoq4G1DH5&format=png&color=000000' },
-  { name: 'Close', src: 'https://img.icons8.com/?size=100&id=GhvBtzNnBL71&format=png&color=000000' },
-  { name: 'Done', src: 'https://img.icons8.com/?size=100&id=n1nME5z0SPXi&format=png&color=000000' },
-  { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
-  { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
-];
 
 interface TextListProps {
   texts: TextWithPage[];

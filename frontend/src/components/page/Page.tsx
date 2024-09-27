@@ -1,3 +1,5 @@
+// Page.tsx
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -33,7 +35,7 @@ export interface PageProps {
 
 export interface ElementType {
   id: string;
-  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon';
+  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon' | 'elemetImage'; // Adicionado 'elemetImage'
   x: number;
   y: number;
   content?: string; // Para texto
@@ -115,6 +117,7 @@ const Page: React.FC<PageProps> = ({
 
     const textType = e.dataTransfer.getData('textType') as 'text' | 'paragraph';
     const imageSrc = e.dataTransfer.getData('imageSrc');
+    const elementImageSrc = e.dataTransfer.getData('elementImageSrc'); // Novo
     const shapeColor = e.dataTransfer.getData('shapeColor') || '#000000';
     const iconSrc = e.dataTransfer.getData('iconSrc');
 
@@ -164,6 +167,37 @@ const Page: React.FC<PageProps> = ({
           x,
           y,
           src: imageSrc,
+          width: imgWidth,
+          height: imgHeight,
+        };
+        onElementsChange(pageId, newElement, 'add');
+      };
+    } else if (type === 'elemetImage' && elementImageSrc) { // Novo tratamento para 'elemetImage'
+      const img = new Image();
+      img.src = elementImageSrc;
+      img.onload = () => {
+        const maxWidth = 300;
+        const maxHeight = 300;
+        let imgWidth = img.width;
+        let imgHeight = img.height;
+
+        if (imgWidth > maxWidth) {
+          const ratio = maxWidth / imgWidth;
+          imgWidth = maxWidth;
+          imgHeight = imgHeight * ratio;
+        }
+        if (imgHeight > maxHeight) {
+          const ratio = maxHeight / imgHeight;
+          imgHeight = maxHeight;
+          imgWidth = imgWidth * ratio;
+        }
+
+        const newElement: ElementType = {
+          id: uuidv4(),
+          type,
+          x,
+          y,
+          src: elementImageSrc,
           width: imgWidth,
           height: imgHeight,
         };
@@ -318,7 +352,6 @@ const Page: React.FC<PageProps> = ({
       </>
     );
   };
-  
 
   const ImageElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const [image] = useImage(el.src || '', 'anonymous');
@@ -354,6 +387,47 @@ const Page: React.FC<PageProps> = ({
             rotation: node.rotation(),
             width: Math.max(node.width() * scaleX, 10),
             height: Math.max(node.height() * scaleY, 10),
+          };
+          onElementsChange(pageId, updatedElement, 'update');
+        }}
+      />
+    );
+  };
+
+  const ElementImageElement: React.FC<{ el: ElementType }> = ({ el }) => { // Novo componente
+    const [image] = useImage(el.src || '', 'anonymous');
+
+    return (
+      <KonvaImageElement
+        id={el.id}
+        x={el.x}
+        y={el.y}
+        image={image}
+        width={el.width || 100}
+        height={el.height || 100}
+        rotation={el.rotation || 0}
+        draggable
+        onClick={() => setSelectedElement({ pageId, elementId: el.id })}
+        onTap={() => setSelectedElement({ pageId, elementId: el.id })}
+        onDragEnd={(e: KonvaEventObject<DragEvent>) => {
+          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
+          onElementsChange(pageId, updatedElement, 'update');
+        }}
+        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+          const node = e.target;
+          const scaleX = node.scaleX();
+          const scaleY = node.scaleY();
+
+          node.scaleX(1);
+          node.scaleY(1);
+
+          const updatedElement: ElementType = {
+            ...el,
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            width: Math.max((el.width || 100) * scaleX, 10),
+            height: Math.max((el.height || 100) * scaleY, 10),
           };
           onElementsChange(pageId, updatedElement, 'update');
         }}
@@ -505,6 +579,8 @@ const Page: React.FC<PageProps> = ({
                 return <TextElement key={el.id} el={el} />;
               case 'image':
                 return <ImageElement key={el.id} el={el} />;
+              case 'elemetImage': // Novo caso para 'elemetImage'
+                return <ElementImageElement key={el.id} el={el} />;
               case 'rectangle':
               case 'square':
               case 'circle':

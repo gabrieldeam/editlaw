@@ -1,24 +1,17 @@
+// src/components/Toolbox/Toolbox.tsx
+
 'use client';
 
 import React, { useRef, useState } from 'react';
 import styles from './Toolbox.module.css';
-
-type IconType = {
-  name: string;
-  src: string;
-};
-
-const iconLibrary: IconType[] = [
-  { name: 'Doc', src: 'https://img.icons8.com/?size=100&id=b0vfoq4G1DH5&format=png&color=000000' },
-  { name: 'Close', src: 'https://img.icons8.com/?size=100&id=GhvBtzNnBL71&format=png&color=000000' },
-  { name: 'Done', src: 'https://img.icons8.com/?size=100&id=n1nME5z0SPXi&format=png&color=000000' },
-  { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
-  { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
-];
+import { iconLibrary, IconType } from './iconLibrary'; // Importando iconLibrary e IconType
 
 const Toolbox: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const elementImageInputRef = useRef<HTMLInputElement>(null); // Novo ref para ElementImage
   const [shapeColor, setShapeColor] = useState<string>('#000000');
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [elementImageSrc, setElementImageSrc] = useState<string | null>(null); // Novo estado para ElementImage
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -26,10 +19,33 @@ const Toolbox: React.FC = () => {
       const reader = new FileReader();
 
       reader.onload = (event) => {
-        const imageUrl = event.target?.result;
-        const imageDiv = document.getElementById('draggable-image');
-        if (imageDiv && typeof imageUrl === 'string') {
-          imageDiv.setAttribute('data-src', imageUrl);
+        const url = event.target?.result;
+        if (url && typeof url === 'string') {
+          setImageSrc(url);
+          const imageDiv = document.getElementById('draggable-image');
+          if (imageDiv) {
+            imageDiv.setAttribute('data-src', url);
+          }
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleElementImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { // Nova função de upload para ElementImage
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const url = event.target?.result;
+        if (url && typeof url === 'string') {
+          setElementImageSrc(url);
+          const elementImageDiv = document.getElementById('draggable-element-image');
+          if (elementImageDiv) {
+            elementImageDiv.setAttribute('data-src', url);
+          }
         }
       };
 
@@ -43,6 +59,7 @@ const Toolbox: React.FC = () => {
 
   return (
     <div className={styles.toolboxContainer}>
+      {/* Itens de texto e formas existentes */}
       <div
         draggable
         onDragStart={(e) => {
@@ -72,9 +89,9 @@ const Toolbox: React.FC = () => {
         draggable
         onDragStart={(e) => {
           e.dataTransfer.setData('elementType', 'image');
-          const imageSrc = e.currentTarget.getAttribute('data-src');
-          if (imageSrc) {
-            e.dataTransfer.setData('imageSrc', imageSrc);
+          const src = imageSrc || e.currentTarget.getAttribute('data-src');
+          if (src) {
+            e.dataTransfer.setData('imageSrc', src);
           } else {
             e.preventDefault();
             alert('Por favor, faça o upload de uma imagem primeiro.');
@@ -86,6 +103,27 @@ const Toolbox: React.FC = () => {
         Imagem
       </div>
 
+      {/* Novo elemento ElementImage */}
+      <div
+        id="draggable-element-image"
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('elementType', 'elemetImage'); // Definido como 'elemetImage' conforme solicitado
+          const src = elementImageSrc || e.currentTarget.getAttribute('data-src');
+          if (src) {
+            e.dataTransfer.setData('elementImageSrc', src);
+          } else {
+            e.preventDefault();
+            alert('Por favor, faça o upload de uma ElementImage primeiro.');
+          }
+        }}
+        className={styles.toolboxItem}
+        title="ElementImage"
+      >
+        ElementImage
+      </div>
+
+      {/* Itens de formas */}
       <div
         draggable
         onDragStart={(e) => {
@@ -134,8 +172,9 @@ const Toolbox: React.FC = () => {
         Triângulo
       </div>
 
+      {/* Biblioteca de ícones */}
       <div className={styles.toolboxIcons}>
-        {iconLibrary.map((icon, index) => (
+        {iconLibrary.map((icon: IconType, index: number) => (
           <img
             key={index}
             src={icon.src}
@@ -151,6 +190,7 @@ const Toolbox: React.FC = () => {
         ))}
       </div>
 
+      {/* Seletor de cor */}
       <input
         type="color"
         className={styles.colorInput}
@@ -159,6 +199,7 @@ const Toolbox: React.FC = () => {
         title="Selecionar Cor"
       />
 
+      {/* Botão de upload de imagem existente */}
       <input
         type="file"
         accept="image/*"
@@ -174,6 +215,23 @@ const Toolbox: React.FC = () => {
         Upload Image
       </button>
 
+      {/* Novo botão de upload para ElementImage */}
+      <input
+        type="file"
+        accept="image/*"
+        ref={elementImageInputRef}
+        style={{ display: 'none' }}
+        onChange={handleElementImageUpload}
+      />
+      <button
+        onClick={() => elementImageInputRef.current?.click()}
+        className={styles.uploadImageButton} // Pode ser alterado para uma classe distinta se desejar
+        title="Upload ElementImage"
+      >
+        Upload ElementImage
+      </button>
+
+      {/* Botão para gerar PDF */}
       <button
         onClick={handleGeneratePDF}
         className={styles.generatePdfButton}

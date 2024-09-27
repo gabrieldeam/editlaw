@@ -8,6 +8,7 @@ import Page, { ElementType } from './Page';
 import TextList from './TextList';
 import styles from './DocumentEditor.module.css';
 import { v4 as uuidv4 } from 'uuid';
+import CadastroPage from './CadastroPage';
 
 // Definição das interfaces
 interface PageData {
@@ -27,6 +28,10 @@ interface ImageWithPage extends ElementType {
   pageId: string;
 }
 
+interface ElementImageWithPage extends ElementType { // Nova interface para ElementImage
+  pageId: string;
+}
+
 const A4_WIDTH = 595; // Largura em pixels para 72 DPI
 const A4_HEIGHT = 842; // Altura em pixels para 72 DPI
 
@@ -34,8 +39,10 @@ const DocumentEditor: React.FC = () => {
   const [pages, setPages] = useState<PageData[]>([
     { id: uuidv4(), elements: [] },
   ]);
-  
+
   const [selectedElement, setSelectedElement] = useState<{ pageId: string; elementId: string } | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'editor' | 'cadastro'>('editor'); // Estado para controlar a aba ativa
 
   const addPage = () => {
     const newPageId = uuidv4();
@@ -149,6 +156,24 @@ const DocumentEditor: React.FC = () => {
     );
   };
 
+  const handleElementImageChange = ( // Nova função para ElementImage
+    pageId: string,
+    elementId: string,
+    newSrc: string
+  ) => {
+    setPages(prev =>
+      prev.map(page => {
+        if (page.id === pageId) {
+          const updatedElements = page.elements.map(el =>
+            el.id === elementId && el.type === 'elemetImage' ? { ...el, src: newSrc } : el
+          );
+          return { ...page, elements: updatedElements };
+        }
+        return page;
+      })
+    );
+  };
+
   const handleShapeColorChange = (currentColor: string, newColor: string) => {
     setPages(prev =>
       prev.map(page => ({
@@ -166,6 +191,13 @@ const DocumentEditor: React.FC = () => {
   const allImages: ImageWithPage[] = pages.flatMap(page =>
     page.elements
       .filter(el => el.type === 'image')
+      .map(el => ({ ...el, pageId: page.id }))
+  );
+
+  // Coletar todas as ElementImages das páginas
+  const allElementImages: ElementImageWithPage[] = pages.flatMap(page =>
+    page.elements
+      .filter(el => el.type === 'elemetImage')
       .map(el => ({ ...el, pageId: page.id }))
   );
 
@@ -229,19 +261,41 @@ const DocumentEditor: React.FC = () => {
           </button>
         </div>
         <div className={styles.rightPanel}>
-          <TextList
-            texts={allTexts}
-            shapes={allShapes}
-            icons={allIcons}
-            images={allImages} // Passando as imagens para TextList
-            onTextChange={handleTextChange}
-            onShapeColorChange={handleShapeColorChange}
-            onTextFormatChange={handleTextFormatChange}
-            onIconChange={handleIconChange}
-            onImageChange={handleImageChange} // Passando a função de troca de imagens
-            selectedElement={selectedElement}
-            setSelectedElement={setSelectedElement}
-          />
+          <div className={styles.tabButtons}>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'editor' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('editor')}
+            >
+              Editor
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'cadastro' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('cadastro')}
+            >
+              Cadastro
+            </button>
+          </div>
+          <div className={styles.tabContent}>
+            {activeTab === 'editor' ? (
+              <TextList
+                texts={allTexts}
+                shapes={allShapes}
+                icons={allIcons}
+                images={allImages}            
+                onTextChange={handleTextChange}
+                onShapeColorChange={handleShapeColorChange}
+                onTextFormatChange={handleTextFormatChange}
+                onIconChange={handleIconChange}
+                onImageChange={handleImageChange}            
+                selectedElement={selectedElement}
+                setSelectedElement={setSelectedElement}
+              />
+            ) : (
+              <div className={styles.cadastroContent}>
+                <CadastroPage />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
