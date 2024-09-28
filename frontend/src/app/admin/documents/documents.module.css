@@ -1,0 +1,82 @@
+/* src/app/admin/documents/documents.module.css */
+
+.container {
+    padding: 70px;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    margin-top: 110px;
+  }
+  
+  .title {
+    font-size: 22px;
+  }
+  
+  .createButton {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .documentList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: 9px;
+    overflow: hidden;
+  }
+  
+  .documentHeader, .documentItem {
+    display: flex;
+    padding: 15px;
+    font-weight: bold;
+  }
+  
+  .documentHeader {
+    background-color: #c0c0c0;
+  }
+  
+  .documentItem {
+    font-weight: normal;
+  }
+  
+  .documentHeader span, .documentItem span {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .documentItem:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+  }
+  
+  .oddRow {
+    background-color: #f9f9f9;
+  }
+  
+  .evenRow {
+    background-color: transparent;
+  }
+  
+
+  .actionButton {
+    padding: 5px 10px;
+    background-color: #0070f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .actionButton:hover {
+    background-color: #005bb5;
+  }
