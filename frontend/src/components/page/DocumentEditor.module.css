@@ -218,3 +218,38 @@
     font-size: 16px;
   }
 }
+
+
+.documentSelector {
+  display: flex;
+  align-items: center;
+  margin-top: 20px; /* Espaçamento acima do seletor */
+}
+
+.documentSelect {
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+  margin-right: 10px; /* Espaçamento entre o select e o botão */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.cadastrarButton {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  background-color: #28a745;
+  color: #fff;
+  transition: background-color 0.3s, transform 0.2s;
+  font-size: 16px;
+}
+
+.cadastrarButton:hover {
+  background-color: #218838;
+}
+
+.cadastrarButton:active {
+  transform: scale(0.95);
+}

@@ -1,4 +1,4 @@
-// DocumentEditor.tsx
+// src/components/DocumentEditor.tsx
 
 'use client';
 
@@ -8,7 +8,6 @@ import Page, { ElementType } from './Page';
 import TextList from './TextList';
 import styles from './DocumentEditor.module.css';
 import { v4 as uuidv4 } from 'uuid';
-import CadastroPage from './CadastroPage';
 
 // Definição das interfaces
 interface PageData {
@@ -32,10 +31,14 @@ interface ElementImageWithPage extends ElementType { // Nova interface para Elem
   pageId: string;
 }
 
+interface DocumentEditorProps {
+  documentId: string;
+}
+
 const A4_WIDTH = 595; // Largura em pixels para 72 DPI
 const A4_HEIGHT = 842; // Altura em pixels para 72 DPI
 
-const DocumentEditor: React.FC = () => {
+const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
   const [pages, setPages] = useState<PageData[]>([
     { id: uuidv4(), elements: [] },
   ]);
@@ -43,6 +46,17 @@ const DocumentEditor: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<{ pageId: string; elementId: string } | null>(null);
 
   const [activeTab, setActiveTab] = useState<'editor' | 'cadastro'>('editor'); // Estado para controlar a aba ativa
+
+  const handleCadastrarClick = () => {
+    if (documentId) {
+      console.log('Documento selecionado ID:', documentId);
+      // Implementar a lógica para cadastrar o documento selecionado
+      // Por exemplo, adicionar as páginas do documento selecionado ao editor
+      // Você pode chamar uma função de API ou atualizar o estado conforme necessário
+    } else {
+      alert('Documento ID não disponível.');
+    }
+  };
 
   const addPage = () => {
     const newPageId = uuidv4();
@@ -165,7 +179,7 @@ const DocumentEditor: React.FC = () => {
       prev.map(page => {
         if (page.id === pageId) {
           const updatedElements = page.elements.map(el =>
-            el.id === elementId && el.type === 'elemetImage' ? { ...el, src: newSrc } : el
+            el.id === elementId && el.type === 'elementImage' ? { ...el, src: newSrc } : el // Corrigido 'elemetImage' para 'elementImage'
           );
           return { ...page, elements: updatedElements };
         }
@@ -197,7 +211,7 @@ const DocumentEditor: React.FC = () => {
   // Coletar todas as ElementImages das páginas
   const allElementImages: ElementImageWithPage[] = pages.flatMap(page =>
     page.elements
-      .filter(el => el.type === 'elemetImage')
+      .filter(el => el.type === 'elementImage') // Corrigido 'elemetImage' para 'elementImage'
       .map(el => ({ ...el, pageId: page.id }))
   );
 
@@ -261,40 +275,27 @@ const DocumentEditor: React.FC = () => {
           </button>
         </div>
         <div className={styles.rightPanel}>
-          <div className={styles.tabButtons}>
+          <TextList
+            texts={allTexts}
+            shapes={allShapes}
+            icons={allIcons}
+            images={allImages}            
+            onTextChange={handleTextChange}
+            onShapeColorChange={handleShapeColorChange}
+            onTextFormatChange={handleTextFormatChange}
+            onIconChange={handleIconChange}
+            onImageChange={handleImageChange}            
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+          />
+          {/* Remover o Select e deixar apenas o botão "Cadastrar" */}
+          <div className={styles.documentSelector}>
             <button
-              className={`${styles.tabButton} ${activeTab === 'editor' ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab('editor')}
+              onClick={handleCadastrarClick}
+              className={styles.cadastrarButton}
             >
-              Editor
+              Cadastrar
             </button>
-            <button
-              className={`${styles.tabButton} ${activeTab === 'cadastro' ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab('cadastro')}
-            >
-              Cadastro
-            </button>
-          </div>
-          <div className={styles.tabContent}>
-            {activeTab === 'editor' ? (
-              <TextList
-                texts={allTexts}
-                shapes={allShapes}
-                icons={allIcons}
-                images={allImages}            
-                onTextChange={handleTextChange}
-                onShapeColorChange={handleShapeColorChange}
-                onTextFormatChange={handleTextFormatChange}
-                onIconChange={handleIconChange}
-                onImageChange={handleImageChange}            
-                selectedElement={selectedElement}
-                setSelectedElement={setSelectedElement}
-              />
-            ) : (
-              <div className={styles.cadastroContent}>
-                <CadastroPage />
-              </div>
-            )}
           </div>
         </div>
       </div>

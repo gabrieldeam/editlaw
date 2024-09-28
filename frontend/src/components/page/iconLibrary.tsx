@@ -10,4 +10,7 @@ export type IconType = {
     { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
     { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
     { name: 'React', src: 'https://img.icons8.com/color/48/000000/react-native.png' },
+    { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
+    { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
+    { name: 'Trash', src: 'https://img.icons8.com/?size=100&id=UHHRzSA53Teo&format=png&color=000000' },
 ];

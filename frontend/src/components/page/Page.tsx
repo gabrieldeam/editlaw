@@ -35,7 +35,7 @@ export interface PageProps {
 
 export interface ElementType {
   id: string;
-  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon' | 'elemetImage'; // Adicionado 'elemetImage'
+  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon' | 'elementImage'; // Adicionado 'elementImage'
   x: number;
   y: number;
   content?: string; // Para texto
@@ -172,7 +172,7 @@ const Page: React.FC<PageProps> = ({
         };
         onElementsChange(pageId, newElement, 'add');
       };
-    } else if (type === 'elemetImage' && elementImageSrc) { // Novo tratamento para 'elemetImage'
+    } else if (type === 'elementImage' && elementImageSrc) { // Novo tratamento para 'elementImage'
       const img = new Image();
       img.src = elementImageSrc;
       img.onload = () => {
@@ -579,7 +579,7 @@ const Page: React.FC<PageProps> = ({
                 return <TextElement key={el.id} el={el} />;
               case 'image':
                 return <ImageElement key={el.id} el={el} />;
-              case 'elemetImage': // Novo caso para 'elemetImage'
+              case 'elementImage': // Novo caso para 'elementImage'
                 return <ElementImageElement key={el.id} el={el} />;
               case 'rectangle':
               case 'square':

@@ -10,6 +10,8 @@ import fs from 'fs';       // Import para manipulação de arquivos (exclusão d
 import authRoutes from './routes/authRoutes';
 import billingRoutes from './routes/billingRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import documentRoutes from './routes/documentRoutes';
+import pageRoutes from './routes/pageRoutes';
 import { prisma } from './prismaClient';
 import cookieParser from 'cookie-parser';
 
@@ -54,6 +56,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);
 app.use('/api', billingRoutes);
 app.use('/api', categoryRoutes);
+app.use('/api', documentRoutes);
+app.use('/api', pageRoutes);
 
 // Testar a Conexão com o Banco de Dados
 async function testDBConnection() {

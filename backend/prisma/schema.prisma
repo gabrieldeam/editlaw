@@ -48,4 +48,73 @@ model Category {
   image3      String?  // Imagem opcional
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  document    Document[] @relation("CategoryDocuments")
+}
+
+
+enum ElementType {
+  text
+  image
+  rectangle
+  square
+  circle
+  triangle
+  icon
+  elementImage
+}
+
+enum TextType {
+  text
+  paragraph
+}
+
+model Document {
+  id            String      @id @default(uuid())
+  title         String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  pages         Page[]
+  preco         Float
+  precoDesconto Float?
+  descricao     String
+  autor         String
+  image         String?
+  category      Category?   @relation(fields: [categoryId], references: [id], name: "CategoryDocuments")
+  categoryId    String?
+}
+
+model Page {
+  id         String      @id @default(uuid())
+  document   Document    @relation(fields: [documentId], references: [id])
+  documentId String
+  pageNumber Int 
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  elements   Element[]
+}
+
+model Element {
+  id             String     @id @default(uuid())
+  page           Page       @relation(fields: [pageId], references: [id])
+  pageId         String
+  type           ElementType
+  x              Float
+  y              Float
+  rotation       Float?     // Opcional
+  content        String?    // Para textos
+  src            String?    // Para imagens e ícones
+  fontSize       Int?       // Para textos
+  bold           Boolean?   // Para textos
+  italic         Boolean?   // Para textos
+  underline      Boolean?   // Para textos
+  fill           String?    // Para formas e textos
+  width          Float?     // Para imagens e formas
+  height         Float?     // Para imagens e formas
+  radius         Float?     // Para círculos e triângulos
+  textType       TextType?  // Diferencia tipos de texto
+  highlightColor String?    // Cor de destaque para textos
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([pageId])
 }

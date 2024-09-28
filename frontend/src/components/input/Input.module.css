@@ -7,9 +7,9 @@
 .label {
   font-size: 16px;
   text-align: left;
-  margin-bottom: 10px; /* Espaço entre o label e o input */
-  color: black; /* Pode personalizar a cor do texto */
-  margin-top: 10px; /* Espaço entre o label e o input */
+  margin-bottom: 10px;
+  color: black;
+  margin-top: 10px; 
 }
 
 .inputWrapper {
@@ -22,7 +22,7 @@
   height: 44px;
   border: 1px solid black;
   background-color: transparent;
-  padding: 0 10px; /* Para adicionar algum espaçamento interno */
+  padding: 0 10px;
   font-size: 16px;
   outline: none;
   border-radius: 9px;

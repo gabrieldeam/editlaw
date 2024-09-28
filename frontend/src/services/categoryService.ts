@@ -8,6 +8,15 @@ interface CategoryData {
   image3?: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  image1?: string; // URLs das imagens
+  image2?: string;
+  image3?: string;
+}
+
 // Função para criar categoria, agora aceita FormData
 export const createCategory = async (categoryData: FormData) => {
   try {
