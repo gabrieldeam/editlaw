@@ -545,14 +545,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
           />
-          <div className={styles.documentSelector}>
-            <button
-              onClick={() => console.log('Cadastrar funcionalidade')}
-              className={styles.cadastrarButton}
-            >
-              Cadastrar
-            </button>
-          </div>
         </div>
       </div>
     </div>

@@ -63,3 +63,6 @@ export const getBillingInfo = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao buscar informações de cobrança.' });
   }
 };
+
+
+

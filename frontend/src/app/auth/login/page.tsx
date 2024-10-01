@@ -1,19 +1,20 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Importa o hook useRouter
+import { useRouter } from 'next/navigation';
 import { loginUser } from '../../../services/authService'; // Serviço de login
 import Input from '../../../components/input/Input';
-import Notification from '../../../components/notification/Notification'; // Reutiliza o Notification
+import Notification from '../../../components/notification/Notification';
 import Link from 'next/link';
-import styles from './login.module.css'; // Estilos específicos de login
+import styles from './login.module.css';
+import { useCart } from '../../../context/CartContext'; // Importa o contexto do carrinho
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-  
-  const router = useRouter(); // Hook para redirecionamento
+  const router = useRouter();
+  const { cartItems } = useCart(); // Usa o carrinho para verificar se ele está correto
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +23,11 @@ const LoginPage: React.FC = () => {
       const data = await loginUser({ email, password });
       setNotification({ message: 'Login bem-sucedido!', type: 'success' });
       console.log('Login bem-sucedido:', data);
-      
+
+      // Verifica se o carrinho está correto após o login
+      const storedCartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+      console.log('Itens no carrinho após o login:', storedCartItems);
+
       // Redireciona para a home após o login bem-sucedido
       router.push('/');
     } catch (error) {
@@ -31,18 +36,14 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // Função para redirecionar o usuário para autenticação do Google
   const handleGoogleSignIn = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (
     <div className={styles.pageContainer}>
-      {/* Lado esquerdo - Formulário de login */}
       <div className={styles.leftContainer}>
-        {/* Exibe a notificação, se houver */}
         {notification && <Notification message={notification.message} type={notification.type} />}
-
         <Link href="/">
           <img src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} />
         </Link>
@@ -89,7 +90,6 @@ const LoginPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Lado direito - Imagem */}
       <div className={styles.rightContainer}>
         <img src="/icon/checklogo.svg" alt="Check Logo" className={styles.rightImage} />
       </div>

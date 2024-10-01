@@ -8,6 +8,7 @@ import {
   updateDocument,
   deleteDocument,
   getDocumentsWithoutPages,
+  getDocumentsByCategory,
 } from '../controllers/documentController';
 
 const router = Router();
@@ -18,6 +19,112 @@ const router = Router();
  *   name: Documents
  *   description: Operações relacionadas a documentos
  */
+
+/**
+ * @swagger
+ * /documents/category/{categoryId}:
+ *   get:
+ *     summary: Recuperar documentos por ID da categoria com paginação
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         description: ID da categoria para filtrar os documentos
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Número de documentos por página
+ *     responses:
+ *       200:
+ *         description: Lista de documentos filtrados por categoria
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Document'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 totalDocuments:
+ *                   type: integer
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   documents: 
+ *                     - id: "uuid-do-documento-1"
+ *                       title: "Título do Documento 1"
+ *                       preco: 100.0
+ *                       precoDesconto: null
+ *                       descricao: "Descrição do Documento 1"
+ *                       autor: "Autor 1"
+ *                       image: "/upload/imagem1.jpg"
+ *                       categoryId: "uuid-da-categoria-1"
+ *                       createdAt: "2024-04-01T00:00:00.000Z"
+ *                       updatedAt: "2024-04-01T00:00:00.000Z"                      
+ *                   totalPages: 5
+ *                   currentPage: 1
+ *                   totalDocuments: 50
+ *       400:
+ *         description: Parâmetros inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   message: "Preço inválido"
+ *       404:
+ *         description: Categoria não encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   message: "Categoria não encontrada"
+ *       500:
+ *         description: Erro no servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   message: "Erro ao buscar documentos por categoria"
+ *                   error: "Descrição do erro"
+ */
+router.get('/documents/category/:categoryId', getDocumentsByCategory);
 
 /**
  * @swagger

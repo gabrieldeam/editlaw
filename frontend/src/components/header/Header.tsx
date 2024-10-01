@@ -1,3 +1,5 @@
+// src/components/Header/Header.tsx
+
 "use client";
 
 import Link from 'next/link';
@@ -7,6 +9,7 @@ import { getAllCategories } from '../../services/categoryService';
 import styles from './Header.module.css';
 import { useRouter } from 'next/navigation';
 import CustomSelect from '../customSelect/CustomSelect';
+import { useCart } from '../../context/CartContext';
 
 const Header: React.FC = () => {
   const [user, setUser] = useState<{ name: string } | null>(null);
@@ -17,6 +20,7 @@ const Header: React.FC = () => {
   const [categories, setCategories] = useState<{ id: string, name: string }[]>([]); // Estado para armazenar categorias
   const [selectedCategory, setSelectedCategory] = useState<string>(''); // Categoria selecionada
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const { cartCount } = useCart(); // Obtém o contador do carrinho do contexto
   const dropdownDesktopRef = useRef<HTMLDivElement>(null);
   const dropdownMobileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -52,7 +56,7 @@ const Header: React.FC = () => {
       }
     };
 
-    // Execute both functions
+    // Execute as funções
     fetchUserInfo();
     fetchCategories();
     checkAdmin();
@@ -136,12 +140,11 @@ const Header: React.FC = () => {
           </Link>
 
           <div className={styles.searchContainer}>
-          
-          <CustomSelect
-            options={categories}
-            onSelect={handleCategorySelect}
-            placeholder="Todas as categorias"
-          />      
+            <CustomSelect
+              options={categories}
+              onSelect={handleCategorySelect}
+              placeholder="Todas as categorias"
+            />
 
             <img
               src="/icon/search.svg"
@@ -158,9 +161,7 @@ const Header: React.FC = () => {
               onKeyDown={handleKeyDown}              
             />
             <button onClick={handleSearch} className={styles.searchButton}>Pesquisar</button>
-                  
           </div>
-
         </div>
         <div className={styles.right}>
           <Link href="/licenca" className={styles.licenca}>Licença</Link>
@@ -173,6 +174,11 @@ const Header: React.FC = () => {
           <Link href="/cart" className={styles.cartContainer}>
             <img src="/icon/cart.svg" alt="Cart" className={styles.cartIcon} />
           </Link>
+          {cartCount > 0 && (
+            <Link href="/cart" className={styles.cartContainerCount}>
+              <span className={styles.cartCount}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{cartCount}</span>
+            </Link>
+          )}
 
           {user ? (
             <>
@@ -212,7 +218,7 @@ const Header: React.FC = () => {
       </header>
 
       {!showMobileSearch ? (
-        <div className={styles.mobileButtons}>
+        <div className={user ? styles.mobileButtons2 : styles.mobileButtons}>
           {!user && (
             <>
               <Link href="/auth/login" className={styles.mobileButtonLogin}>Entrar</Link>
@@ -222,31 +228,27 @@ const Header: React.FC = () => {
         </div>
       ) : (
         <div className={styles.mobileSearchBar}>
-
-
-
           <CustomSelect
             options={categories}
             onSelect={handleCategorySelect}
             placeholder="Tudo"
-          />      
+          />
 
-            <img
-              src="/icon/search.svg"
-              alt="Search Icon"
-              className={styles.searchIcon}
-              onClick={handleSearch}  // Executa a busca ao clicar no ícone
-            />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              className={styles.mobileSearchInput}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}              
-            />
-            <button onClick={handleSearch} className={styles.searchButton}>Pesquisar</button>          
-
+          <img
+            src="/icon/search.svg"
+            alt="Search Icon"
+            className={styles.searchIcon}
+            onClick={handleSearch} 
+          />
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            className={styles.mobileSearchInput}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}              
+          />
+          <button onClick={handleSearch} className={styles.searchButton}>Pesquisar</button>          
         </div>
       )}
     </>

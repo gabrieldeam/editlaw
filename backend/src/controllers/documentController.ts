@@ -31,6 +31,49 @@ const removeOldImage = async (oldImagePath: string) => {
   }
 };
 
+export const getDocumentsByCategory = async (req: Request, res: Response) => {
+  const { categoryId } = req.params;
+  const { page = 1, size = 10 } = req.query; // Pega os parâmetros de paginação
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(size as string, 10);
+
+  try {
+    // Verificar se a categoria existe
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: 'Categoria não encontrada' });
+    }
+
+    // Buscar documentos pela categoryId com paginação
+    const documents = await prisma.document.findMany({
+      where: { categoryId },
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+      include: {
+        category: true, // Inclui os dados da categoria
+      },
+    });
+
+    const totalDocuments = await prisma.document.count({
+      where: { categoryId },
+    });
+    const totalPages = Math.ceil(totalDocuments / pageSize);
+
+    res.status(200).json({
+      documents,
+      totalPages,
+      currentPage: pageNumber,
+      totalDocuments,
+    });
+  } catch (error) {
+    console.error('Erro ao buscar documentos por categoria:', error instanceof Error ? error.message : error);
+    res.status(500).json({ message: 'Erro ao buscar documentos por categoria', error: error instanceof Error ? error.message : 'Erro desconhecido' });
+  }
+};
+
 // Get all documents with pagination and include category
 export const getAllDocuments = async (req: Request, res: Response) => {
   const { page = 1, size = 10 } = req.query; // Pega os parâmetros de paginação

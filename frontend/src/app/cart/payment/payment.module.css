@@ -1,0 +1,289 @@
+.paymentContainer {
+    padding: 70px;
+    margin-top: 80px;
+  }
+  
+  .title {
+    font-size: 22px;
+    margin-bottom: 40px;
+  }
+  
+  .contentContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .emptyMessage {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .leftSide {
+    width: 50%;
+    padding-right: 20px;
+  }
+  
+  .rightSide {
+    width: 50%; /* Diminui um pouco para dar espaço ao leftSide */
+  }
+  
+  .documentCard {
+    display: flex;
+    align-items: center;
+    background-color: #D2D2D2;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    border-radius: 9px;
+  }
+  
+  .documentImage {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    margin-right: 20px;
+  }
+  
+  .documentInfo {
+    flex: 1;
+  }
+  
+  .documentTitle {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .documentPrice {
+    font-size: 26px;
+    color: #000;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .access {
+    font-size: 18px;
+    color: #666;
+    font-weight: bold;
+  }
+  
+  .trashIcon {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+  }
+  
+  .rightSide .summaryCard {
+    background-color: #E2E2E2;
+    padding: 20px;
+    border-radius: 9px;
+  }
+
+  .summaryCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .summaryTitle {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .cancelButton {
+    color: #45C907;
+    margin-bottom: 20px;
+  }
+  
+  .summaryItems {
+    margin-bottom: 30px;
+    font-size: 18px;
+    color: #666;
+    font-weight: bold;
+  }
+  
+  .separator {
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    margin-bottom: 30px;
+  }
+  
+  .subtotalRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .payButton {
+    width: 100%;
+    padding: 16px;
+    background-color: #45C907;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .payText {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  
+  .paymentInfo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .paymentTextContainer {
+    display: flex;
+  }
+  
+  .assuranceIcon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+  
+  .paymentText {
+    font-size: 20px;
+    margin-right: 20px;
+  }
+
+  .documentListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .documentListTitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .documentList {
+    background-color: #E2E2E2;
+    padding: 16px;
+    margin-top: 20px;
+    border-radius: 9px;
+  }
+
+
+  .billingBox {
+    background-color: #E2E2E2;
+    padding: 20px;
+    border-radius: 9px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+  }
+  
+  .billingHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .billingTitle {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .arrowIcon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .arrowUp {
+    transform: rotate(180deg);
+  }
+  
+  .billingInfoButtonContainer {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .billingInfoButton {
+    width: 100%;
+    padding: 16px;
+    background-color: #45C907;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  
+  .billingInfoButtonCancelar {
+    width: 100%;
+    padding: 16px;
+    background-color: #ffffff;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  
+  .inputRow {
+    display: flex;
+    gap: 10px;
+  }
+
+  
+  
+  /* Media Queries para Mobile e Tablet */
+  @media (max-width: 768px) {
+    .paymentContainer {
+      padding: 20px;
+    }
+  
+    .title {
+      margin-bottom: 20px;
+    }
+  
+    .contentContainer {
+      flex-direction: column;
+    }
+  
+    .leftSide,
+    .rightSide {
+      width: 100%;
+      padding-right: 0;
+      margin-bottom: 20px;
+    }
+  
+    .paymentInfo {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .paymentText {
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+  
+    .paymentIconsContainer {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  
+    .paymentIcon {
+      margin: 0 5px;
+    }
+  }
+  

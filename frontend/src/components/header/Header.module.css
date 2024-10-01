@@ -47,11 +47,25 @@
     justify-content: center;
     margin-left: 30px;
     margin-right: 20px;
+    z-index: 1;
   }
   
   .cartIcon {
     min-width: 20px;
     height: 20px;
+  }
+
+  .cartContainerCount {
+    width: 48px;
+    height: 48px;
+    background-color: #303030;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -65px;
+    padding: 16px 45px;
+    margin-right: 30px;
   }
   
   .button {
@@ -80,14 +94,6 @@
   .mobileButtons {
     display: none;
   }
-
-
-
-
-
-
-
-
 
   .searchContainer {
     display: flex;
@@ -307,6 +313,11 @@
       margin-left: 20px;
     }
 
+    .cartContainerCount {
+      margin-left: -45px;
+      margin-right: 0;
+    }
+
   }
 
  
@@ -351,6 +362,8 @@
       justify-content: space-between;
       padding: 10px 20px;
       gap: 10px;
+            margin-top: 80px;
+      margin-bottom: -60px;
     }
   
     .mobileButton {
@@ -386,6 +399,12 @@
 
     .dropdownMenu {
       margin-top: 5px;
+    }
+
+
+    .cartContainerCount {
+      margin-left: -45px;
+      margin-right: 0;
     }
   }
   
@@ -435,6 +454,8 @@
       justify-content: space-between;
       padding: 10px 20px;
       gap: 10px;
+      margin-top: 80px;
+      margin-bottom: -60px;
     }
   
     .mobileButton {
@@ -478,6 +499,12 @@
   
   .dropdownMenu {
     margin-top: 5px;
+  }
+
+
+  .cartContainerCount {
+    margin-left: -45px;
+    margin-right: 0;
   }
   }
   

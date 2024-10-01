@@ -4,7 +4,9 @@ import '../styles/globals.css';
 import { ReactNode, useEffect, useState } from 'react';
 import Header from '../components/header/Header';
 import { usePathname, useRouter } from 'next/navigation';
-import { checkAuth, isAdmin } from '../services/authService';  // Importar serviços de autenticação e verificação de admin
+import { checkAuth, isAdmin } from '../services/authService'; 
+import { CartProvider } from '../context/CartContext';
+import { PaymentProvider } from '../context/PaymentContext';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -79,9 +81,13 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 
   return (
     <html lang="pt-BR">
-      <body>
-        {showHeader && <Header />} {/* Não exibe o Header nas páginas de autenticação */}
-        <main>{children}</main>
+      <body>        
+        <CartProvider>
+        <PaymentProvider>
+          {showHeader && <Header />}
+          <main>{children}</main>
+        </PaymentProvider>
+        </CartProvider>
       </body>
     </html>
   );

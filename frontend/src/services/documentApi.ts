@@ -16,6 +16,20 @@ export interface Document {
   updatedAt?: string;
 }
 
+export interface DocumentData {
+  id?: string;
+  title: string;
+  preco: number;
+  precoDesconto?: number;
+  descricao: string;
+  autor: string;
+  image?: string;
+  categoryId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
 export interface PaginatedDocumentsResponse {
   documents: Document[];
   totalDocuments: number;
@@ -90,6 +104,18 @@ export const deleteDocument = async (id: string): Promise<void> => {
     await api.delete(`/documents/${id}`);
   } catch (error) {
     console.error(`Erro ao deletar o documento com ID ${id}:`, error);
+    throw error;
+  }
+};
+
+export const getDocumentsByCategory = async (categoryId: string, page = 1, size = 10): Promise<PaginatedDocumentsResponse> => {
+  try {
+    const response = await api.get<PaginatedDocumentsResponse>(`/documents/category/${categoryId}`, {
+      params: { page, size },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Erro ao buscar documentos da categoria com ID ${categoryId}:`, error);
     throw error;
   }
 };

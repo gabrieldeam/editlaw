@@ -18,8 +18,8 @@ const AdminPage: React.FC = () => {
         <Link href="/admin/documents">
           <button className={styles.button}>Documentos</button>
         </Link>
-        <Link href="/admin/creations">
-          <button className={styles.button}>Criação</button>
+        <Link href="/admin/coupons">
+          <button className={styles.button}>Coupons</button>
         </Link>
       </div>
     </div>
