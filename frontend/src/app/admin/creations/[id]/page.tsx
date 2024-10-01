@@ -27,7 +27,6 @@ const CreationsPage: React.FC = () => {
 
   return (
     <div className="creations-page-container">
-      <h1>Criação de Documento - ID: {id}</h1>
       <DocumentEditor documentId={id} /> {/* Passe o id como prop */}
     </div>
   );

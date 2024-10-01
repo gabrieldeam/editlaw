@@ -1,4 +1,4 @@
-// Page.tsx
+// src/components/page/Page.tsx
 
 'use client';
 
@@ -35,22 +35,22 @@ export interface PageProps {
 
 export interface ElementType {
   id: string;
-  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon' | 'elementImage'; // Adicionado 'elementImage'
+  type: 'text' | 'image' | 'rectangle' | 'square' | 'circle' | 'triangle' | 'icon' | 'elementImage';
   x: number;
   y: number;
-  content?: string; // Para texto
-  src?: string; // Para imagens e ícones
-  fontSize?: number; // Para texto
-  bold?: boolean; // Para texto
-  italic?: boolean; // Para texto
-  underline?: boolean; // Para texto
-  fill?: string; // Para formas e texto
-  width?: number; // Para imagens e formas
-  height?: number; // Para imagens e formas
-  rotation?: number; // Para todos os elementos
-  radius?: number; // Para círculo e triângulo
-  textType?: 'text' | 'paragraph'; // Diferencia tipos de texto
-  highlightColor?: string; // Cor de fundo para destacar o texto
+  content?: string;
+  src?: string;
+  fontSize?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  fill?: string;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  radius?: number;
+  textType?: 'text' | 'paragraph';
+  highlightColor?: string;
 }
 
 const Page: React.FC<PageProps> = ({
@@ -247,8 +247,10 @@ const Page: React.FC<PageProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' && selectedElement && selectedElement.pageId === pageId) {
-        const elementToDelete = elements.find(el => el.id === selectedElement.elementId);
+      if (e.key === 'Delete' && selectedElement) {
+        const pageId = selectedElement.pageId;
+        const elementToDelete = elements.find((el: ElementType) => el.id === selectedElement.elementId);
+        
         if (elementToDelete) {
           onElementsChange(pageId, elementToDelete, 'delete');
         }
@@ -318,13 +320,17 @@ const Page: React.FC<PageProps> = ({
           onTap={() => setSelectedElement({ pageId, elementId: el.id })}
           onDblClick={() => handleTextEdit(el)}
           onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-            const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-            onElementsChange(pageId, updatedElement, 'update');
+            const newX = e.target.x();
+            const newY = e.target.y();
+            if (el.x !== newX || el.y !== newY) {
+              const updatedElement: ElementType = { ...el, x: newX, y: newY };
+              onElementsChange(pageId, updatedElement, 'update');
+            }
           }}
-          onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+          onTransformEnd={(e: KonvaEventObject<MouseEvent>) => { // Adicionado
             const node = e.target;
+            const scaleX = node.scaleX();
             const scaleY = node.scaleY();
-
             node.scaleX(1);
             node.scaleY(1);
 
@@ -333,7 +339,9 @@ const Page: React.FC<PageProps> = ({
               x: node.x(),
               y: node.y(),
               rotation: node.rotation(),
-              fontSize: Math.max((el.fontSize || 16) * scaleY, 8),
+              fontSize: el.fontSize ? el.fontSize * scaleY : 16,
+              width: node.width() * scaleX,
+              // Adicione outras propriedades conforme necessário
             };
             onElementsChange(pageId, updatedElement, 'update');
           }}
@@ -369,14 +377,17 @@ const Page: React.FC<PageProps> = ({
         onClick={() => setSelectedElement({ pageId, elementId: el.id })}
         onTap={() => setSelectedElement({ pageId, elementId: el.id })}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-          onElementsChange(pageId, updatedElement, 'update');
+          const newX = e.target.x();
+          const newY = e.target.y();
+          if (el.x !== newX || el.y !== newY) {
+            const updatedElement: ElementType = { ...el, x: newX, y: newY };
+            onElementsChange(pageId, updatedElement, 'update');
+          }
         }}
-        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => { // Adicionado
           const node = e.target;
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
-
           node.scaleX(1);
           node.scaleY(1);
 
@@ -385,8 +396,8 @@ const Page: React.FC<PageProps> = ({
             x: node.x(),
             y: node.y(),
             rotation: node.rotation(),
-            width: Math.max(node.width() * scaleX, 10),
-            height: Math.max(node.height() * scaleY, 10),
+            width: node.width() * scaleX,
+            height: node.height() * scaleY,
           };
           onElementsChange(pageId, updatedElement, 'update');
         }}
@@ -410,14 +421,17 @@ const Page: React.FC<PageProps> = ({
         onClick={() => setSelectedElement({ pageId, elementId: el.id })}
         onTap={() => setSelectedElement({ pageId, elementId: el.id })}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-          onElementsChange(pageId, updatedElement, 'update');
+          const newX = e.target.x();
+          const newY = e.target.y();
+          if (el.x !== newX || el.y !== newY) {
+            const updatedElement: ElementType = { ...el, x: newX, y: newY };
+            onElementsChange(pageId, updatedElement, 'update');
+          }
         }}
-        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => { // Adicionado
           const node = e.target;
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
-
           node.scaleX(1);
           node.scaleY(1);
 
@@ -426,8 +440,8 @@ const Page: React.FC<PageProps> = ({
             x: node.x(),
             y: node.y(),
             rotation: node.rotation(),
-            width: Math.max((el.width || 100) * scaleX, 10),
-            height: Math.max((el.height || 100) * scaleY, 10),
+            width: node.width() * scaleX,
+            height: node.height() * scaleY,
           };
           onElementsChange(pageId, updatedElement, 'update');
         }}
@@ -446,54 +460,36 @@ const Page: React.FC<PageProps> = ({
       onClick: () => setSelectedElement({ pageId, elementId: el.id }),
       onTap: () => setSelectedElement({ pageId, elementId: el.id }),
       onDragEnd: (e: KonvaEventObject<DragEvent>) => {
-        const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-        onElementsChange(pageId, updatedElement, 'update');
+        const newX = e.target.x();
+        const newY = e.target.y();
+        if (el.x !== newX || el.y !== newY) {
+          const updatedElement: ElementType = { ...el, x: newX, y: newY };
+          onElementsChange(pageId, updatedElement, 'update');
+        }
       },
-      onTransformEnd: (e: KonvaEventObject<MouseEvent>) => {
+      onTransformEnd: (e: KonvaEventObject<MouseEvent>) => { // Adicionado
         const node = e.target;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
-
         node.scaleX(1);
         node.scaleY(1);
 
-        let updatedElement: ElementType = { ...el };
+        let updatedElement: ElementType = { ...el, x: node.x(), y: node.y(), rotation: node.rotation() };
 
-        if (el.type === 'circle') {
-          updatedElement = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            rotation: node.rotation(),
-            radius: Math.max((el.radius || 50) * scaleX, 10),
-          };
-        } else if (el.type === 'triangle') {
-          updatedElement = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            rotation: node.rotation(),
-            radius: Math.max((el.radius || 50) * scaleX, 10),
-          };
-        } else if (el.type === 'square') {
-          const newSize = Math.max((el.width || 100) * scaleX, 10);
-          updatedElement = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            rotation: node.rotation(),
-            width: newSize,
-            height: newSize,
-          };
-        } else if (el.type === 'rectangle') {
-          updatedElement = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            rotation: node.rotation(),
-            width: Math.max((el.width || 100) * scaleX, 10),
-            height: Math.max((el.height || 100) * scaleY, 10),
-          };
+        switch (el.type) {
+          case 'rectangle':
+          case 'square':
+            updatedElement.width = node.width() * scaleX;
+            updatedElement.height = node.height() * scaleY;
+            break;
+          case 'circle':
+            updatedElement.radius = el.radius ? el.radius * scaleX : 50 * scaleX;
+            break;
+          case 'triangle':
+            updatedElement.radius = el.radius ? el.radius * scaleX : 50 * scaleX;
+            break;
+          default:
+            break;
         }
 
         onElementsChange(pageId, updatedElement, 'update');
@@ -530,14 +526,17 @@ const Page: React.FC<PageProps> = ({
         onClick={() => setSelectedElement({ pageId, elementId: el.id })}
         onTap={() => setSelectedElement({ pageId, elementId: el.id })}
         onDragEnd={(e: KonvaEventObject<DragEvent>) => {
-          const updatedElement: ElementType = { ...el, x: e.target.x(), y: e.target.y() };
-          onElementsChange(pageId, updatedElement, 'update');
+          const newX = e.target.x();
+          const newY = e.target.y();
+          if (el.x !== newX || el.y !== newY) {
+            const updatedElement: ElementType = { ...el, x: newX, y: newY };
+            onElementsChange(pageId, updatedElement, 'update');
+          }
         }}
-        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => {
+        onTransformEnd={(e: KonvaEventObject<MouseEvent>) => { // Adicionado
           const node = e.target;
           const scaleX = node.scaleX();
           const scaleY = node.scaleY();
-
           node.scaleX(1);
           node.scaleY(1);
 
@@ -546,8 +545,8 @@ const Page: React.FC<PageProps> = ({
             x: node.x(),
             y: node.y(),
             rotation: node.rotation(),
-            width: Math.max((el.width || 50) * scaleX, 10),
-            height: Math.max((el.height || 50) * scaleY, 10),
+            width: node.width() * scaleX,
+            height: node.height() * scaleY,
           };
           onElementsChange(pageId, updatedElement, 'update');
         }}
@@ -573,7 +572,7 @@ const Page: React.FC<PageProps> = ({
         <Layer>
           <Rect x={0} y={0} width={width} height={height} fill="white" listening={false} />
 
-          {elements.map((el) => {
+          {elements.map((el: ElementType) => {
             switch (el.type) {
               case 'text':
                 return <TextElement key={el.id} el={el} />;

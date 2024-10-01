@@ -94,13 +94,4 @@ export const deleteDocument = async (id: string): Promise<void> => {
   }
 };
 
-// Função para buscar todos os documentos sem páginas cadastradas
-export const getDocumentsWithoutPages = async (): Promise<DocumentsWithoutPagesResponse> => {
-  try {
-    const response = await api.get<DocumentsWithoutPagesResponse>('/documents/no-pages');
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar documentos sem páginas:', error);
-    throw error;
-  }
-};
+

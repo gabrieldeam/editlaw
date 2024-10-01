@@ -12,6 +12,7 @@ import billingRoutes from './routes/billingRoutes';
 import categoryRoutes from './routes/categoryRoutes';
 import documentRoutes from './routes/documentRoutes';
 import pageRoutes from './routes/pageRoutes';
+import elementRoutes from './routes/elementRoutes';
 import { prisma } from './prismaClient';
 import cookieParser from 'cookie-parser';
 
@@ -58,6 +59,7 @@ app.use('/api', billingRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', documentRoutes);
 app.use('/api', pageRoutes);
+app.use('/api', elementRoutes);
 
 // Testar a Conexão com o Banco de Dados
 async function testDBConnection() {

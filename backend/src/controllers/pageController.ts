@@ -3,78 +3,35 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prismaClient';
 
-// Obter todas as páginas com paginação e opção de filtrar por documentId
-export const getAllPages = async (req: Request, res: Response) => {
-  const { page = 1, size = 10, documentId } = req.query;
-  const pageNumber = parseInt(page as string, 10);
-  const pageSize = parseInt(size as string, 10);
-
-  const filter: any = {};
-  if (documentId) {
-    filter.documentId = documentId;
-  }
+// Obter todas as páginas pelo ID do documento
+export const getPagesByDocumentId = async (req: Request, res: Response) => {
+  const { documentId } = req.params;
 
   try {
     const pages = await prisma.page.findMany({
-      where: filter,
-      skip: (pageNumber - 1) * pageSize,
-      take: pageSize,
-      include: {
-        document: true, // Inclui os dados do documento relacionado
-        elements: true, // Inclui os elementos da página
-      },
+      where: { documentId },
       orderBy: {
         pageNumber: 'asc', // Ordena por número da página
       },
-    });
-
-    const totalPages = await prisma.page.count({
-      where: filter,
-    });
-
-    const totalPageCount = Math.ceil(totalPages / pageSize);
-
-    res.status(200).json({
-      pages,
-      totalPages: totalPageCount,
-      currentPage: pageNumber,
-      totalDocuments: totalPages,
-    });
-  } catch (error) {
-    console.error('Erro ao buscar páginas:', error instanceof Error ? error.message : error);
-    res.status(500).json({
-      message: 'Erro ao buscar páginas',
-      error: error instanceof Error ? error.message : 'Erro desconhecido',
-    });
-  }
-};
-
-// Obter uma página por ID
-export const getPageById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    const page = await prisma.page.findUnique({
-      where: { id },
       include: {
-        document: true, // Inclui os dados do documento relacionado
-        elements: true, // Inclui os elementos da página
+        elements: true, // Inclui os elementos da página, se necessário
       },
     });
 
-    if (!page) {
-      return res.status(404).json({ message: 'Página não encontrada' });
+    if (pages.length === 0) {
+      return res.status(404).json({ message: 'Nenhuma página encontrada para o documento especificado' });
     }
 
-    res.status(200).json(page);
+    res.status(200).json(pages);
   } catch (error) {
-    console.error('Erro ao buscar página:', error instanceof Error ? error.message : error);
+    console.error('Erro ao buscar páginas pelo documentId:', error instanceof Error ? error.message : error);
     res.status(500).json({
-      message: 'Erro ao buscar página',
+      message: 'Erro ao buscar páginas pelo documentId',
       error: error instanceof Error ? error.message : 'Erro desconhecido',
     });
   }
 };
+
 
 // Criar uma nova página
 export const createPage = async (req: Request, res: Response) => {

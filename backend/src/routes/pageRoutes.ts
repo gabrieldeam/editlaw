@@ -2,8 +2,7 @@
 
 import express from 'express';
 import {
-  getAllPages,
-  getPageById,
+  getPagesByDocumentId,
   createPage,
   updatePage,
   deletePage,
@@ -20,79 +19,61 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/pages:
- *   get:
- *     summary: Obter todas as páginas com paginação e filtro opcional por documentId
- *     tags: [Pages]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Número da página para paginação
- *       - in: query
- *         name: size
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Número de itens por página
- *       - in: query
- *         name: documentId
- *         schema:
+ * components:
+ *   schemas:
+ *     Page:
+ *       type: object
+ *       properties:
+ *         id:
  *           type: string
  *           format: uuid
- *         description: Filtrar páginas por ID do documento associado
- *     responses:
- *       200:
- *         description: Lista de páginas
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 pages:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Page'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalDocuments:
- *                   type: integer
- *       500:
- *         description: Erro ao buscar páginas
+ *           description: ID único da página
+ *         documentId:
+ *           type: string
+ *           format: uuid
+ *           description: ID do documento ao qual a página pertence
+ *         pageNumber:
+ *           type: integer
+ *           description: Número da página dentro do documento
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Data e hora de criação da página
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Data e hora da última atualização da página
  */
-router.get('/pages', getAllPages);
 
 /**
  * @swagger
- * /api/pages/{id}:
+ * /api/pages/document/{documentId}:
  *   get:
- *     summary: Obter uma página específica por ID
+ *     summary: Obter todas as páginas pelo ID do documento
  *     tags: [Pages]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: documentId
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID da página a ser obtida
+ *         description: ID do documento para o qual as páginas serão retornadas
  *     responses:
  *       200:
- *         description: Página encontrada
+ *         description: Lista de páginas associadas ao documento
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Page'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Page'
  *       404:
- *         description: Página não encontrada
+ *         description: Nenhuma página encontrada para o documento especificado
  *       500:
- *         description: Erro ao buscar página
+ *         description: Erro ao buscar páginas
  */
-router.get('/pages/:id', getPageById);
+router.get('/pages/document/:documentId', getPagesByDocumentId);
 
 /**
  * @swagger
