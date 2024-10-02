@@ -307,6 +307,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 // Função para validar senha
 const validatePassword = (password: string): boolean => {
-  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s])[^\s]{8,}$/;
   return passwordRegex.test(password);
 };
+

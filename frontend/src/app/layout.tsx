@@ -5,6 +5,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import Header from '../components/header/Header';
 import { usePathname, useRouter } from 'next/navigation';
 import { checkAuth, isAdmin } from '../services/authService'; 
+import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { PaymentProvider } from '../context/PaymentContext';
 
@@ -82,12 +83,14 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
   return (
     <html lang="pt-BR">
       <body>        
-        <CartProvider>
-        <PaymentProvider>
-          {showHeader && <Header />}
-          <main>{children}</main>
-        </PaymentProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <PaymentProvider>
+              {showHeader && <Header />}
+              <main>{children}</main>
+            </PaymentProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

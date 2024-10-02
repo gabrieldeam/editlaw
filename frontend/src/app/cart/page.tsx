@@ -20,7 +20,6 @@ const CartPage: React.FC = () => {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    // Buscar detalhes de cada documento no carrinho
     const fetchDocuments = async () => {
       const docs: DocumentData[] = [];
       let total = 0;
@@ -39,11 +38,18 @@ const CartPage: React.FC = () => {
 
     if (cartItems.length > 0) {
       fetchDocuments();
+    } else {
+      setDocuments([]); // Limpa os documentos quando o carrinho está vazio
+      setSubtotal(0);    // Reseta o subtotal
     }
   }, [cartItems]);
 
-  const handleRemoveItem = (documentId: string) => {
-    removeFromCart(documentId);
+  const handleRemoveItem = (documentId?: string) => {
+    if (documentId) {
+      removeFromCart(documentId);
+    } else {
+      console.error('ID do documento é indefinido.');
+    }
   };
 
   const handleApplyPromoCode = async () => {
@@ -66,9 +72,13 @@ const CartPage: React.FC = () => {
   };
 
   const handlePayment = () => {
-    const totalAmount = subtotal - discount;
-    setTotalAmount(totalAmount); // Armazena o total no contexto
-    router.push('/cart/payment'); // Redireciona para a página de pagamento
+    if (subtotal > 0 && documents.length > 0) {
+      const totalAmount = subtotal - discount;
+      setTotalAmount(totalAmount); // Armazena o total no contexto
+      router.push('/cart/payment'); // Redireciona para a página de pagamento
+    } else {
+      setNotification({ message: 'O carrinho está vazio ou o total é inválido.', type: 'error' });
+    }
   };
 
   return (
@@ -101,7 +111,7 @@ const CartPage: React.FC = () => {
                   src="/icon/trash.svg"
                   alt="Remover"
                   className={styles.trashIcon}
-                  onClick={() => handleRemoveItem(document.id!)}
+                  onClick={() => handleRemoveItem(document.id)}
                 />
               </div>
             ))
@@ -150,7 +160,11 @@ const CartPage: React.FC = () => {
             </div>
 
             {/* Botão de pagamento */}
-            <button className={styles.payButton} onClick={handlePayment}>
+            <button 
+              className={styles.payButton} 
+              onClick={handlePayment} 
+              disabled={subtotal === 0 || documents.length === 0}
+            >
               Pronto para pagar
             </button>
           </div>

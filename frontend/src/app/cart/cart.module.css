@@ -149,6 +149,11 @@
   font-size: 16px;
 }
 
+.payButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .paymentInfo {
   display: flex;
   align-items: center;

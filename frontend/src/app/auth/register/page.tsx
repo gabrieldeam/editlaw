@@ -19,7 +19,7 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     // Validação de senha
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -32,8 +32,12 @@ const RegisterPage: React.FC = () => {
       setNotification({ message: 'Registro bem-sucedido!', type: 'success' });
       console.log('Registro bem-sucedido:', data);
       router.push('/');
-    } catch (error) {
-      setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' });
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setNotification({ message: error.response.data.message, type: 'error' });
+      } else {
+        setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' });
+      }
       console.error('Erro no registro:', error);
     }
   };

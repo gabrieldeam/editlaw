@@ -90,7 +90,8 @@ export const editEmail = async (data: EditEmailData) => {
 export const getUserInfo = async () => {
   try {
     const response = await api.get('/auth/me');
-    return response.data;
+    console.log('Resposta de getUserInfo:', response.data);
+    return response.data; // Retorna apenas os dados do usuário
   } catch (error) {
     throw error;
   }

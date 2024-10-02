@@ -1,20 +1,21 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { loginUser } from '../../../services/authService'; // Serviço de login
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
 import Link from 'next/link';
 import styles from './login.module.css';
-import { useCart } from '../../../context/CartContext'; // Importa o contexto do carrinho
+import { useAuth } from '../../../context/AuthContext'; // Importe o AuthContext
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { cartItems } = useCart(); // Usa o carrinho para verificar se ele está correto
+  const { refreshUser } = useAuth(); // Função para atualizar o estado de autenticação
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +25,12 @@ const LoginPage: React.FC = () => {
       setNotification({ message: 'Login bem-sucedido!', type: 'success' });
       console.log('Login bem-sucedido:', data);
 
-      // Verifica se o carrinho está correto após o login
-      const storedCartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-      console.log('Itens no carrinho após o login:', storedCartItems);
+      // Atualiza o estado de autenticação
+      refreshUser();
 
-      // Redireciona para a home após o login bem-sucedido
-      router.push('/');
+      // Verifica se há uma URL de redirecionamento na query string
+      const redirect = searchParams.get('redirect') || '/';
+      router.push(redirect);
     } catch (error) {
       setNotification({ message: 'Erro no login. Verifique suas credenciais.', type: 'error' });
       console.error('Erro no login:', error);

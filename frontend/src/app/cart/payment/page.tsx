@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { usePayment } from '../../../context/PaymentContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './payment.module.css'; 
 import { useCart } from '../../../context/CartContext';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getBillingInfo, createOrUpdateBillingInfo } from '../../../services/billingService';
 import Input from '../../../components/input/Input';
+import Notification from '../../../components/notification/Notification';
+import { useAuth } from '../../../context/AuthContext';
 
 const PaymentPage: React.FC = () => {
-  const { totalAmount } = usePayment();
+  // Removemos o uso do contexto PaymentContext
+  // const { totalAmount } = usePayment();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { cartItems } = useCart();
+  const { isAuthenticated, loading } = useAuth();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [billingInfo, setBillingInfo] = useState({
@@ -27,8 +31,20 @@ const PaymentPage: React.FC = () => {
   });
   const [hasBillingData, setHasBillingData] = useState(false);
   const [loadingBillingInfo, setLoadingBillingInfo] = useState(true);
-  const [isBillingInfoVisible, setIsBillingInfoVisible] = useState(false); // Estado para controlar visibilidade da seção
+  const [isBillingInfoVisible, setIsBillingInfoVisible] = useState(false);
   const [isDocumentListVisibility, setIsDocumentListVisibility] = useState(false);
+  const [isCardVisibility, setIsCardVisibility] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Verificar autenticação
+  useEffect(() => {
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('loading:', loading);
+    if (!loading && !isAuthenticated) {
+      // Redireciona para a página de login com o parâmetro de redirecionamento
+      router.push(`/auth/login?redirect=${encodeURIComponent('/cart/payment')}`);
+    }
+  }, [isAuthenticated, loading, router]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -38,6 +54,8 @@ const PaymentPage: React.FC = () => {
       for (const itemId of cartItems) {
         const document = await getDocumentById(itemId);
         docs.push(document);
+
+        // Calcular subtotal
         total += document.precoDesconto ? document.precoDesconto : document.preco;
       }
 
@@ -47,6 +65,9 @@ const PaymentPage: React.FC = () => {
 
     if (cartItems.length > 0) {
       fetchDocuments();
+    } else {
+      setDocuments([]); // Limpa os documentos quando o carrinho está vazio
+      setSubtotal(0);    // Reseta o subtotal
     }
   }, [cartItems]);
 
@@ -68,6 +89,23 @@ const PaymentPage: React.FC = () => {
     fetchBillingInfo();
   }, []);
 
+  const isBillingInfoValid = () => {
+    // Verifica se todos os campos do objeto billingInfo estão preenchidos
+    return Object.values(billingInfo).every((field) => field.trim() !== '');
+  };
+  
+  const hasMissingBillingInfo = () => {
+    return Object.values(billingInfo).some((field) => field.trim() === '');
+  };
+
+  const handleCardSave = async () => {
+    try {
+      alert('Cartão cadastrado com sucesso!');
+    } catch (error) {
+      alert('Erro ao salvar informações do cartão. Tente novamente.');
+    }
+  };
+
   const handleBillingInfoSave = async () => {
     try {
       await createOrUpdateBillingInfo(billingInfo);
@@ -82,14 +120,32 @@ const PaymentPage: React.FC = () => {
     setIsBillingInfoVisible(!isBillingInfoVisible); // Alterna a visibilidade
   };
 
-
   const toggleDocumentListVisibility = () => {
     setIsDocumentListVisibility(!isDocumentListVisibility); // Alterna a visibilidade
   };
 
-  const handleConfirmPayment = () => {
-    console.log('Pagamento confirmado, valor total:', totalAmount);
+  const toggleCardVisibility = () => {
+    setIsCardVisibility(!isCardVisibility); // Alterna a visibilidade
   };
+
+  const handleConfirmPayment = () => {
+    // Usamos subtotal em vez de totalAmount
+    if (subtotal > 0 && documents.length > 0 && isBillingInfoValid()) {
+      setNotification({ message: 'Pagamento confirmado', type: 'success' });
+      // Aqui você pode adicionar a lógica para processar o pagamento
+    } else {
+      setNotification({ message: 'O carrinho está vazio, o total é inválido ou as informações de cobrança estão incompletas.', type: 'error' });
+    }
+  };
+
+  // Exibir um indicador de carregamento enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <p>Verificando autenticação...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.paymentContainer}>
@@ -100,6 +156,9 @@ const PaymentPage: React.FC = () => {
           <div className={styles.billingBox}>
             <div className={styles.billingHeader}>
               <h2 className={styles.billingTitle}>Informações de cobrança</h2>
+              {hasMissingBillingInfo() && (
+                <p className={styles.missingInfo}>Falta preencher</p>
+              )}
               <img
                 src="/icon/down-arrow.svg"
                 alt="Mostrar ou esconder informações de cobrança"
@@ -190,6 +249,27 @@ const PaymentPage: React.FC = () => {
               </>
             )}
           </div>
+
+          <div className={styles.billingBox}>
+            <div className={styles.billingHeader}>
+              <h2 className={styles.billingTitle}>Informações de cobrança</h2>    
+              <img
+                src="/icon/down-arrow.svg"
+                alt="Mostrar ou esconder informações de cobrança"
+                className={`${styles.arrowIcon} ${isBillingInfoVisible ? styles.arrowUp : ''}`}
+                onClick={toggleCardVisibility}
+              />
+            </div>
+          
+            <div className={styles.billingInfoButtonContainer}>
+              <button className={styles.billingInfoButton} onClick={handleCardSave}>
+                {hasBillingData ? 'Atualizar' : 'Salvar'} Informações
+              </button>
+              <button className={styles.billingInfoButtonCancelar} onClick={toggleCardVisibility}>
+                Cancelar
+              </button>
+            </div> 
+          </div>
         </div>
 
         <div className={styles.rightSide}>
@@ -206,15 +286,20 @@ const PaymentPage: React.FC = () => {
 
             <div className={styles.subtotalRow}>
               <span>Total a pagar:</span>
-              <span>R$ {totalAmount.toFixed(2)}</span>
+              <span>R$ {subtotal.toFixed(2)}</span>
             </div>
 
-            <button className={styles.payButton} onClick={handleConfirmPayment}>
+            <button 
+              className={styles.payButton} 
+              onClick={handleConfirmPayment}
+              disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}             
+            >
               Pagar
             </button>
 
-            <p className={styles.payText} >Ao clicar em "Concluir compra", você aceita nossos Termos e Condições e nossa Política de Privacidade, bem como concorda em cadastrar seu(s) produto(s) em nosso serviço de renovação automática, que pode ser cancelado a qualquer momento por meio da página “Renovações e cobrança” em sua conta. Para as renovações automáticas, a cobrança é feita com o método de pagamento selecionado para este pedido ou seu(s) método(s) de pagamento alternativo(s), até o cancelamento. Seus dados de pagamento serão salvos como um método de pagamento alternativo para futuras compras e renovações de assinatura. Seu pagamento está sendo processado em: Brasil.</p>
-      
+            <p className={styles.payText}>
+              Ao clicar em "Concluir compra", você aceita nossos Termos e Condições e nossa Política de Privacidade, bem como concorda em cadastrar seu(s) produto(s) em nosso serviço de renovação automática, que pode ser cancelado a qualquer momento por meio da página “Renovações e cobrança” em sua conta. Para as renovações automáticas, a cobrança é feita com o método de pagamento selecionado para este pedido ou seu(s) método(s) de pagamento alternativo(s), até o cancelamento. Seus dados de pagamento serão salvos como um método de pagamento alternativo para futuras compras e renovações de assinatura. Seu pagamento está sendo processado em: Brasil.
+            </p>
           </div>
 
           {/* Pagamento seguro e ícones das formas de pagamento */}
@@ -226,13 +311,12 @@ const PaymentPage: React.FC = () => {
           </div>
 
           <div className={styles.documentList}>
-
-          <div className={styles.documentListHeader}>
+            <div className={styles.documentListHeader}>
               <h2 className={styles.documentListTitle}>Seus itens</h2>
               <img
                 src="/icon/down-arrow.svg"
-                alt="Mostrar ou esconder informações de cobrança"
-                className={`${styles.arrowIcon} ${isBillingInfoVisible ? styles.arrowUp : ''}`}
+                alt="Mostrar ou esconder itens"
+                className={`${styles.arrowIcon} ${isDocumentListVisibility ? styles.arrowUp : ''}`}
                 onClick={toggleDocumentListVisibility}
               />
             </div>            
@@ -257,14 +341,16 @@ const PaymentPage: React.FC = () => {
                   ))
                 ) : (
                   <p className={styles.emptyMessage}>O carrinho está vazio.</p>
-                  
                 )}
-                      
               </>
             )}
           </div>
         </div>
       </div>
+      {/* Exibir notificação se existir */}
+      {notification && (
+        <Notification message={notification.message} type={notification.type} />
+      )}
     </div>
   );
 };

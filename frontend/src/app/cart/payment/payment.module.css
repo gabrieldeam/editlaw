@@ -132,6 +132,11 @@
     font-size: 16px;
   }
 
+  .payButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
   .payText {
     font-size: 12px;
     margin-top: 10px;
@@ -197,6 +202,19 @@
     font-size: 20px;
     margin-bottom: 10px;
   }
+
+  .missingInfo {
+    color: red;
+    animation: blink 1s step-start infinite;
+    font-size: 15px;
+    margin: 0 10px; 
+  }
+  
+  @keyframes blink {
+    50% {
+      opacity: 0.5;
+    }
+  }
   
   .arrowIcon {
     width: 24px;
@@ -235,7 +253,7 @@
     text-decoration: none;
     font-weight: bold;
     font-size: 16px;
-    margin-top: 10px;
+    margin-top: 20px;
   }
   
   .inputRow {
