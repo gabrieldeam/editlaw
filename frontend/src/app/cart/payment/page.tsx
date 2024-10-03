@@ -1,24 +1,31 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import styles from './payment.module.css'; 
+import { useRouter } from 'next/navigation';
+import styles from './payment.module.css';
 import { useCart } from '../../../context/CartContext';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getBillingInfo, createOrUpdateBillingInfo } from '../../../services/billingService';
+import { getCreditCards, createCreditCard } from '@/services/creditCardService';
+import { CreditCard } from '@/types/creditCard';
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
 import { useAuth } from '../../../context/AuthContext';
 
+declare global {
+  interface Window {
+    MercadoPago: any;
+  }
+}
+
 const PaymentPage: React.FC = () => {
-  // Removemos o uso do contexto PaymentContext
-  // const { totalAmount } = usePayment();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { cartItems } = useCart();
-  const { isAuthenticated, loading } = useAuth();
+  const { cartItems, clearCart } = useCart();
+  const { isAuthenticated, loading, user } = useAuth();
+
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
+
   const [billingInfo, setBillingInfo] = useState({
     country: '',
     phone: '',
@@ -33,19 +40,56 @@ const PaymentPage: React.FC = () => {
   const [loadingBillingInfo, setLoadingBillingInfo] = useState(true);
   const [isBillingInfoVisible, setIsBillingInfoVisible] = useState(false);
   const [isDocumentListVisibility, setIsDocumentListVisibility] = useState(false);
-  const [isCardVisibility, setIsCardVisibility] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Estados para cartões de crédito
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [isAddCardVisible, setIsAddCardVisible] = useState(false);
+  const [newCardData, setNewCardData] = useState({
+    name: '',
+    cardNumber: '',
+    expirationDate: '',
+  });
+
+  // Estado para CVV durante o pagamento
+  const [cvv, setCvv] = useState('');
+
+  // Estado para instância do Mercado Pago
+  const [mp, setMp] = useState<any>(null);
 
   // Verificar autenticação
   useEffect(() => {
-    console.log('isAuthenticated:', isAuthenticated);
-    console.log('loading:', loading);
     if (!loading && !isAuthenticated) {
-      // Redireciona para a página de login com o parâmetro de redirecionamento
       router.push(`/auth/login?redirect=${encodeURIComponent('/cart/payment')}`);
     }
   }, [isAuthenticated, loading, router]);
 
+  // Carregar o script do Mercado Pago usando useEffect
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.mercadopago.com/js/v2';
+    script.onload = () => {
+      console.log('Script do Mercado Pago carregado via useEffect');
+      if (window.MercadoPago) {
+        console.log('window.MercadoPago está disponível via useEffect');
+
+        const mercadoPagoInstance = new window.MercadoPago(process.env.NEXT_PUBLIC_MP_PUBLIC_KEY!, {
+          locale: 'pt-BR',
+        });
+        console.log('Chave Pública:', process.env.NEXT_PUBLIC_MP_PUBLIC_KEY);
+        setMp(mercadoPagoInstance);
+      } else {
+        console.error('Mercado Pago SDK não está disponível após carregamento via useEffect');
+      }
+    };
+    script.onerror = () => {
+      console.error('Erro ao carregar o script do Mercado Pago');
+    };
+    document.body.appendChild(script);
+  }, []);
+
+  // Carregar documentos do carrinho
   useEffect(() => {
     const fetchDocuments = async () => {
       const docs: DocumentData[] = [];
@@ -66,11 +110,12 @@ const PaymentPage: React.FC = () => {
     if (cartItems.length > 0) {
       fetchDocuments();
     } else {
-      setDocuments([]); // Limpa os documentos quando o carrinho está vazio
-      setSubtotal(0);    // Reseta o subtotal
+      setDocuments([]);
+      setSubtotal(0);
     }
   }, [cartItems]);
 
+  // Carregar informações de cobrança
   useEffect(() => {
     const fetchBillingInfo = async () => {
       try {
@@ -89,21 +134,30 @@ const PaymentPage: React.FC = () => {
     fetchBillingInfo();
   }, []);
 
+  // Carregar cartões de crédito
+  useEffect(() => {
+    const fetchCreditCards = async () => {
+      try {
+        const cards = await getCreditCards();
+        setCreditCards(cards);
+
+        if (cards.length > 0) {
+          setSelectedCardId(cards[0].id);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar cartões de crédito:', error);
+      }
+    };
+
+    fetchCreditCards();
+  }, []);
+
   const isBillingInfoValid = () => {
-    // Verifica se todos os campos do objeto billingInfo estão preenchidos
     return Object.values(billingInfo).every((field) => field.trim() !== '');
   };
-  
+
   const hasMissingBillingInfo = () => {
     return Object.values(billingInfo).some((field) => field.trim() === '');
-  };
-
-  const handleCardSave = async () => {
-    try {
-      alert('Cartão cadastrado com sucesso!');
-    } catch (error) {
-      alert('Erro ao salvar informações do cartão. Tente novamente.');
-    }
   };
 
   const handleBillingInfoSave = async () => {
@@ -117,25 +171,180 @@ const PaymentPage: React.FC = () => {
   };
 
   const toggleBillingInfoVisibility = () => {
-    setIsBillingInfoVisible(!isBillingInfoVisible); // Alterna a visibilidade
+    setIsBillingInfoVisible(!isBillingInfoVisible);
   };
 
   const toggleDocumentListVisibility = () => {
-    setIsDocumentListVisibility(!isDocumentListVisibility); // Alterna a visibilidade
+    setIsDocumentListVisibility(!isDocumentListVisibility);
   };
 
-  const toggleCardVisibility = () => {
-    setIsCardVisibility(!isCardVisibility); // Alterna a visibilidade
-  };
+  const handleAddCard = async () => {
+    try {
+      if (
+        newCardData.name &&
+        newCardData.cardNumber &&
+        newCardData.expirationDate
+      ) {
+        await createCreditCard({
+          name: newCardData.name,
+          cardNumber: newCardData.cardNumber,
+          expirationDate: newCardData.expirationDate,
+          // Não envie o CVV ao backend
+        });
 
-  const handleConfirmPayment = () => {
-    // Usamos subtotal em vez de totalAmount
-    if (subtotal > 0 && documents.length > 0 && isBillingInfoValid()) {
-      setNotification({ message: 'Pagamento confirmado', type: 'success' });
-      // Aqui você pode adicionar a lógica para processar o pagamento
-    } else {
-      setNotification({ message: 'O carrinho está vazio, o total é inválido ou as informações de cobrança estão incompletas.', type: 'error' });
+        const cards = await getCreditCards();
+        setCreditCards(cards);
+
+        setNewCardData({
+          name: '',
+          cardNumber: '',
+          expirationDate: '',
+        });
+
+        setIsAddCardVisible(false);
+
+        setNotification({ message: 'Cartão cadastrado com sucesso!', type: 'success' });
+      } else {
+        setNotification({ message: 'Por favor, preencha todos os campos do cartão.', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar cartão:', error);
+      setNotification({ message: 'Erro ao adicionar cartão.', type: 'error' });
     }
+  };
+
+  const handleConfirmPayment = async () => {
+    try {
+      if (isAddCardVisible) {
+        await handleAddCard();
+      }
+
+      const selectedCard = creditCards.find((card) => card.id === selectedCardId);
+
+      if (!selectedCard) {
+        setNotification({ message: 'Selecione um cartão para realizar o pagamento.', type: 'error' });
+        return;
+      }
+
+      if (!cvv) {
+        setNotification({ message: 'Por favor, insira o CVV do cartão.', type: 'error' });
+        return;
+      }
+
+      if (!mp) {
+        setNotification({ message: 'Mercado Pago não inicializado.', type: 'error' });
+        return;
+      }
+
+      if (!user) {
+        setNotification({ message: 'Usuário não autenticado.', type: 'error' });
+        return;
+      }
+
+      // Coletar dados do cartão
+      const cardData = {
+        cardholderName: selectedCard.name,
+        cardNumber: selectedCard.cardNumber.replace(/\s+/g, ''),
+        expirationMonth: selectedCard.expirationDate.split('-')[1],
+        expirationYear: selectedCard.expirationDate.split('-')[0],
+        securityCode: cvv,
+        identificationType: 'CPF',
+        identificationNumber: billingInfo.cpf,
+      };
+
+      console.log('Dados do cartão:', cardData);
+
+      const cardTokenData = {
+        cardNumber: cardData.cardNumber,
+        cardholderName: cardData.cardholderName,
+        cardExpirationMonth: cardData.expirationMonth,
+        cardExpirationYear: cardData.expirationYear,
+        securityCode: cardData.securityCode,
+        identificationType: cardData.identificationType,
+        identificationNumber: cardData.identificationNumber,
+      };
+
+      console.log('Dados enviados para createCardToken:', cardTokenData);
+
+      // Criar token do cartão
+      const tokenResult = await mp.createCardToken(cardTokenData);
+
+      console.log('Resultado do createCardToken:', tokenResult);
+
+      if (tokenResult?.error) {
+        console.error('Erro ao criar token do cartão:', tokenResult.error);
+        setNotification({ message: 'Erro ao criar token do cartão.', type: 'error' });
+        return;
+      }
+
+      const token = tokenResult.id;
+
+      // Obter payment_method_id
+      const bin = cardData.cardNumber.substring(0, 6);
+      const paymentMethods = await mp.getPaymentMethods({ bin });
+
+      if (paymentMethods?.results?.length === 0) {
+        setNotification({ message: 'Não foi possível determinar o método de pagamento.', type: 'error' });
+        return;
+      }
+
+      const paymentMethodId = paymentMethods.results[0].id;
+
+      // Montar dados do pagamento
+      const paymentData = {
+        token,
+        transaction_amount: subtotal,
+        description: 'Compra de documentos',
+        installments: 1,
+        payment_method_id: paymentMethodId,
+        payer: {
+          email: user.email,
+          identification: {
+            type: cardData.identificationType,
+            number: cardData.identificationNumber,
+          },
+        },
+      };
+
+      console.log('Dados do pagamento a serem enviados para o backend:', paymentData);
+
+      // Enviar pagamento para o backend
+      const response = await fetch('/api/process_payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+
+      const result = await response.json();
+
+      console.log('Resposta do backend:', result);
+
+      if (result.status === 'approved') {
+        // Limpar o carrinho
+        clearCart();
+
+        // Redirecionar para a página de sucesso
+        router.push('/purchase-success');
+      } else {
+        // Redirecionar para a página de falha
+        router.push('/purchase-failure');
+      }
+    } catch (error) {
+      console.error('Erro ao processar o pagamento:', error);
+      setNotification({ message: 'Erro ao processar o pagamento.', type: 'error' });
+    }
+  };
+
+  const handlePayWithBoleto = () => {
+    // Implemente a lógica para pagamento com boleto
+    alert('Pagamento com boleto não implementado.');
+  };
+
+  const handlePayWithPix = () => {
+    // Implemente a lógica para pagamento com pix
+    alert('Pagamento com pix não implementado.');
   };
 
   // Exibir um indicador de carregamento enquanto verifica autenticação
@@ -149,6 +358,7 @@ const PaymentPage: React.FC = () => {
 
   return (
     <div className={styles.paymentContainer}>
+
       <h1 className={styles.title}>Pagamento</h1>
 
       <div className={styles.contentContainer}>
@@ -250,25 +460,75 @@ const PaymentPage: React.FC = () => {
             )}
           </div>
 
-          <div className={styles.billingBox}>
-            <div className={styles.billingHeader}>
-              <h2 className={styles.billingTitle}>Informações de cobrança</h2>    
-              <img
-                src="/icon/down-arrow.svg"
-                alt="Mostrar ou esconder informações de cobrança"
-                className={`${styles.arrowIcon} ${isBillingInfoVisible ? styles.arrowUp : ''}`}
-                onClick={toggleCardVisibility}
-              />
+          {/* Cartões de crédito */}
+          <div className={styles.creditCardBox}>
+            <div className={styles.creditCardHeader}>
+              <h2 className={styles.creditCardTitle}>Formas de pagamento</h2>
             </div>
-          
-            <div className={styles.billingInfoButtonContainer}>
-              <button className={styles.billingInfoButton} onClick={handleCardSave}>
-                {hasBillingData ? 'Atualizar' : 'Salvar'} Informações
+
+            {creditCards.length > 0 ? (
+              <select
+                className={styles.cardSelect}
+                value={selectedCardId}
+                onChange={(e) => setSelectedCardId(e.target.value)}
+              >
+                {creditCards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.name} - **** **** **** {card.cardNumber.slice(-4)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p>Nenhum cartão cadastrado.</p>
+            )}
+
+            <hr className={styles.separator} />
+
+            <div className={styles.buttonContainer}>
+              <button className={styles.addButton} onClick={() => setIsAddCardVisible(true)}>
+                Adicionar cartão
               </button>
-              <button className={styles.billingInfoButtonCancelar} onClick={toggleCardVisibility}>
-                Cancelar
+              <button className={styles.payWithButton} onClick={handlePayWithBoleto}>
+                Pagar com boleto
               </button>
-            </div> 
+              <button className={styles.payWithButton} onClick={handlePayWithPix}>
+                Pagar com pix
+              </button>
+            </div>
+
+            {isAddCardVisible && (
+              <div className={styles.addCardForm}>
+                <Input
+                  label="Nome no Cartão"
+                  name="name"
+                  type="text"
+                  value={newCardData.name}
+                  onChange={(e) => setNewCardData({ ...newCardData, name: e.target.value })}
+                />
+                <Input
+                  label="Número do Cartão"
+                  name="cardNumber"
+                  type="text"
+                  value={newCardData.cardNumber}
+                  onChange={(e) => setNewCardData({ ...newCardData, cardNumber: e.target.value })}
+                />
+                <Input
+                  label="Data de Expiração"
+                  name="expirationDate"
+                  type="month"
+                  value={newCardData.expirationDate}
+                  onChange={(e) => setNewCardData({ ...newCardData, expirationDate: e.target.value })}
+                />
+                <div className={styles.cardFormButtons}>
+                  <button className={styles.saveCardButton} onClick={handleAddCard}>
+                    Salvar Cartão
+                  </button>
+                  <button className={styles.cancelCardButton} onClick={() => setIsAddCardVisible(false)}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -289,10 +549,19 @@ const PaymentPage: React.FC = () => {
               <span>R$ {subtotal.toFixed(2)}</span>
             </div>
 
-            <button 
-              className={styles.payButton} 
+            {/* Campo para CVV durante o pagamento */}
+            <Input
+              label="CVV"
+              name="cvv"
+              type="password"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value)}
+            />
+
+            <button
+              className={styles.payButton}
               onClick={handleConfirmPayment}
-              disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}             
+              disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}
             >
               Pagar
             </button>
@@ -307,7 +576,7 @@ const PaymentPage: React.FC = () => {
             <div className={styles.paymentTextContainer}>
               <img src="/icon/assurance.svg" alt="Pagamento seguro" className={styles.assuranceIcon} />
               <span className={styles.paymentText}>Finalização de compra segura</span>
-            </div>            
+            </div>
           </div>
 
           <div className={styles.documentList}>
@@ -319,10 +588,10 @@ const PaymentPage: React.FC = () => {
                 className={`${styles.arrowIcon} ${isDocumentListVisibility ? styles.arrowUp : ''}`}
                 onClick={toggleDocumentListVisibility}
               />
-            </div>            
+            </div>
             {isDocumentListVisibility && (
               <>
-                {documents.length > 0 ? (                
+                {documents.length > 0 ? (
                   documents.map((document) => (
                     <div key={document.id} className={styles.documentCard}>
                       <img

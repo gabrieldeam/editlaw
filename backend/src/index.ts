@@ -10,6 +10,7 @@ import fs from 'fs';       // Import para manipulação de arquivos (exclusão d
 import authRoutes from './routes/authRoutes';
 import billingRoutes from './routes/billingRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import creditCardRoutes from './routes/creditCardRoutes';
 import documentRoutes from './routes/documentRoutes';
 import pageRoutes from './routes/pageRoutes';
 import elementRoutes from './routes/elementRoutes';
@@ -62,6 +63,7 @@ app.use('/api', documentRoutes);
 app.use('/api', pageRoutes);
 app.use('/api', elementRoutes);
 app.use('/api', couponRoutes);
+app.use('/api', creditCardRoutes);
 
 // Testar a Conexão com o Banco de Dados
 async function testDBConnection() {

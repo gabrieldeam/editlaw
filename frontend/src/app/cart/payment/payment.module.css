@@ -183,7 +183,7 @@
   }
 
 
-  .billingBox {
+  .billingBox, .creditCardBox {
     background-color: #E2E2E2;
     padding: 20px;
     border-radius: 9px;
@@ -192,13 +192,13 @@
     margin-bottom: 20px;
   }
   
-  .billingHeader {
+  .billingHeader, .creditCardHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   
-  .billingTitle {
+  .billingTitle, .creditCardTitle {
     font-size: 20px;
     margin-bottom: 10px;
   }
@@ -227,12 +227,12 @@
     transform: rotate(180deg);
   }
   
-  .billingInfoButtonContainer {
+  .billingInfoButtonContainer, .creditCardButtonContainer {
     display: flex;
     gap: 10px;
   }
   
-  .billingInfoButton {
+  .billingInfoButton, .creditCardButton {
     width: 100%;
     padding: 16px;
     background-color: #45C907;
@@ -244,7 +244,7 @@
     margin-top: 20px;
   }
   
-  .billingInfoButtonCancelar {
+  .billingInfoButtonCancelar, .creditCardButtonCancelar {
     width: 100%;
     padding: 16px;
     background-color: #ffffff;
@@ -262,6 +262,86 @@
   }
 
   
+
+
+
+
+
+  /* Dropdown de cartões */
+.cardSelect {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  margin-top: 5px;
+}
+
+/* Linha separadora */
+.separator {
+  border: 1px solid #ccc;
+  margin: 20px 0;
+}
+
+/* Contêiner dos botões */
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Botões */
+.addButton,
+.payWithButton {
+  flex: 1;
+  padding: 16px;
+  background-color: #45C907;
+  color: #000000;
+  border-radius: 9px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.payWithButton {
+  background-color: #0070f3; /* Cor diferente para distinguir */
+}
+
+/* Formulário de adicionar cartão */
+.addCardForm {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 9px;
+  margin-top: 20px;
+}
+
+.cardFormButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.saveCardButton,
+.cancelCardButton {
+  flex: 1;
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.saveCardButton {
+  background-color: #45C907;
+  color: #000000;
+}
+
+.cancelCardButton {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ccc;
+}
+
+
+
   
   /* Media Queries para Mobile e Tablet */
   @media (max-width: 768px) {
