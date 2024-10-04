@@ -1,0 +1,387 @@
+.paymentContainer {
+    padding: 70px;
+    margin-top: 80px;
+  }
+  
+  .title {
+    font-size: 22px;
+    margin-bottom: 40px;
+  }
+  
+  .contentContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .emptyMessage {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  .leftSide {
+    width: 50%;
+    padding-right: 20px;
+  }
+  
+  .rightSide {
+    width: 50%; /* Diminui um pouco para dar espaço ao leftSide */
+  }
+  
+  .documentCard {
+    display: flex;
+    align-items: center;
+    background-color: #D2D2D2;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    border-radius: 9px;
+  }
+  
+  .documentImage {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    margin-right: 20px;
+  }
+  
+  .documentInfo {
+    flex: 1;
+  }
+  
+  .documentTitle {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .documentPrice {
+    font-size: 26px;
+    color: #000;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .access {
+    font-size: 18px;
+    color: #666;
+    font-weight: bold;
+  }
+  
+  .trashIcon {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+  }
+  
+  .rightSide .summaryCard {
+    background-color: #E2E2E2;
+    padding: 20px;
+    border-radius: 9px;
+  }
+
+  .summaryCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .summaryTitle {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .cancelButton {
+    color: #45C907;
+    margin-bottom: 20px;
+  }
+  
+  .summaryItems {
+    margin-bottom: 30px;
+    font-size: 18px;
+    color: #666;
+    font-weight: bold;
+  }
+  
+  .separator {
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    margin-bottom: 30px;
+  }
+  
+  .subtotalRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .payButton {
+    width: 100%;
+    padding: 16px;
+    background-color: #45C907;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .payButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  .payText {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  
+  .paymentInfo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .paymentTextContainer {
+    display: flex;
+  }
+  
+  .assuranceIcon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+  
+  .paymentText {
+    font-size: 20px;
+    margin-right: 20px;
+  }
+
+  .documentListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .documentListTitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .documentList {
+    background-color: #E2E2E2;
+    padding: 16px;
+    margin-top: 20px;
+    border-radius: 9px;
+  }
+
+
+  .billingBox, .creditCardBox {
+    background-color: #E2E2E2;
+    padding: 20px;
+    border-radius: 9px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+  }
+  
+  .billingHeader, .creditCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .billingTitle, .creditCardTitle {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .missingInfo {
+    color: red;
+    animation: blink 1s step-start infinite;
+    font-size: 15px;
+    margin: 0 10px; 
+  }
+  
+  @keyframes blink {
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .arrowIcon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .arrowUp {
+    transform: rotate(180deg);
+  }
+  
+  .billingInfoButtonContainer, .creditCardButtonContainer {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .billingInfoButton, .creditCardButton {
+    width: 100%;
+    padding: 16px;
+    background-color: #45C907;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  
+  .billingInfoButtonCancelar, .creditCardButtonCancelar {
+    width: 100%;
+    padding: 16px;
+    background-color: #ffffff;
+    color: #000000;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  
+  .inputRow {
+    display: flex;
+    gap: 10px;
+  }
+
+  
+
+
+
+
+
+  /* Dropdown de cartões */
+.cardSelect {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  margin-top: 5px;
+}
+
+/* Linha separadora */
+.separator {
+  border: 1px solid #ccc;
+  margin: 20px 0;
+}
+
+/* Contêiner dos botões */
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Botões */
+.addButton,
+.payWithButton {
+  flex: 1;
+  padding: 16px;
+  background-color: #45C907;
+  color: #000000;
+  border-radius: 9px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.payWithButton {
+  background-color: #0070f3; /* Cor diferente para distinguir */
+}
+
+/* Formulário de adicionar cartão */
+.addCardForm {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 9px;
+  margin-top: 20px;
+}
+
+.cardFormButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.saveCardButton,
+.cancelCardButton {
+  flex: 1;
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.saveCardButton {
+  background-color: #45C907;
+  color: #000000;
+}
+
+.cancelCardButton {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ccc;
+}
+
+
+
+  
+  /* Media Queries para Mobile e Tablet */
+  @media (max-width: 768px) {
+    .paymentContainer {
+      padding: 20px;
+    }
+  
+    .title {
+      margin-bottom: 20px;
+    }
+  
+    .contentContainer {
+      flex-direction: column;
+    }
+  
+    .leftSide,
+    .rightSide {
+      width: 100%;
+      padding-right: 0;
+      margin-bottom: 20px;
+    }
+  
+    .paymentInfo {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .paymentText {
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+  
+    .paymentIconsContainer {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  
+    .paymentIcon {
+      margin: 0 5px;
+    }
+  }
+  

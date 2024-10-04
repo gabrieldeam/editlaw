@@ -6,17 +6,14 @@ import styles from './payment.module.css';
 import { useCart } from '../../../context/CartContext';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getBillingInfo, createOrUpdateBillingInfo } from '../../../services/billingService';
-import { getCreditCards, createCreditCard } from '@/services/creditCardService';
-import { createPurchasedDocuments } from '@/services/purchasedDocumentService';
-import { CreditCard } from '@/types/creditCard';
+import { getUserInfo } from '../../../services/authService'; // Importa o getUserInfo para pegar os dados do usuário
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
-import { useAuth } from '../../../context/AuthContext';
+import { Payment } from '@mercadopago/sdk-react';
 
 const PaymentPage: React.FC = () => {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
-  const { isAuthenticated, loading, user } = useAuth();
 
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
@@ -37,25 +34,25 @@ const PaymentPage: React.FC = () => {
   const [isDocumentListVisibility, setIsDocumentListVisibility] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Estados para cartões de crédito
-  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
-  const [selectedCardId, setSelectedCardId] = useState<string>('');
-  const [isAddCardVisible, setIsAddCardVisible] = useState(false);
-  const [newCardData, setNewCardData] = useState({
-    name: '',
-    cardNumber: '',
-    expirationDate: '',
-  });
-
-  // Estado para CVV durante o pagamento
   const [cvv, setCvv] = useState('');
 
-  // Verificar autenticação
+  // Estado para guardar os dados do usuário
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  // Verificar autenticação e buscar as informações do usuário
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push(`/auth/login?redirect=${encodeURIComponent('/cart/payment')}`);
-    }
-  }, [isAuthenticated, loading, router]);
+    const fetchUserInfo = async () => {
+      try {
+        const userInfo = await getUserInfo(); // Faz a requisição para pegar as informações do usuário
+        setUser(userInfo); // Define o estado do usuário com o nome e e-mail retornado
+      } catch (error) {
+        console.error('Erro ao buscar as informações do usuário:', error);
+        router.push(`/auth/login?redirect=${encodeURIComponent('/cart/payment')}`);
+      }
+    };
+
+    fetchUserInfo();
+  }, [router]);
 
   // Carregar documentos do carrinho
   useEffect(() => {
@@ -66,8 +63,6 @@ const PaymentPage: React.FC = () => {
       for (const itemId of cartItems) {
         const document = await getDocumentById(itemId);
         docs.push(document);
-
-        // Calcular subtotal
         total += document.precoDesconto ? document.precoDesconto : document.preco;
       }
 
@@ -75,12 +70,8 @@ const PaymentPage: React.FC = () => {
       setSubtotal(total);
     };
 
-    if (cartItems.length > 0) {
-      fetchDocuments();
-    } else {
-      setDocuments([]);
-      setSubtotal(0);
-    }
+    if (cartItems.length > 0) fetchDocuments();
+    else setDocuments([]);
   }, [cartItems]);
 
   // Carregar informações de cobrança
@@ -102,31 +93,7 @@ const PaymentPage: React.FC = () => {
     fetchBillingInfo();
   }, []);
 
-  // Carregar cartões de crédito
-  useEffect(() => {
-    const fetchCreditCards = async () => {
-      try {
-        const cards = await getCreditCards();
-        setCreditCards(cards);
-
-        if (cards.length > 0) {
-          setSelectedCardId(cards[0].id);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar cartões de crédito:', error);
-      }
-    };
-
-    fetchCreditCards();
-  }, []);
-
-  const isBillingInfoValid = () => {
-    return Object.values(billingInfo).every((field) => field.trim() !== '');
-  };
-
-  const hasMissingBillingInfo = () => {
-    return Object.values(billingInfo).some((field) => field.trim() === '');
-  };
+  const isBillingInfoValid = () => Object.values(billingInfo).every((field) => field.trim() !== '');
 
   const handleBillingInfoSave = async () => {
     try {
@@ -138,120 +105,82 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  const toggleBillingInfoVisibility = () => {
-    setIsBillingInfoVisible(!isBillingInfoVisible);
+  const toggleBillingInfoVisibility = () => setIsBillingInfoVisible(!isBillingInfoVisible);
+  const toggleDocumentListVisibility = () => setIsDocumentListVisibility(!isDocumentListVisibility);
+
+  // Configurações para o Payment Brick
+  const initialization = {
+    amount: subtotal,
+    preferenceId: '<PREFERENCE_ID>', // Substitua com seu preferenceId
+    payer: {
+      firstName: user?.name?.split(' ')[0] || '',
+      lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+      email: user?.email || '',
+    },
   };
 
-  const toggleDocumentListVisibility = () => {
-    setIsDocumentListVisibility(!isDocumentListVisibility);
+  const customization = {
+    visual: {
+      hideFormTitle: true,
+      style: {
+        theme: 'bootstrap' as const,  // Define explicitamente o valor "bootstrap"
+      },
+    },
+    paymentMethods: {
+      creditCard: "all" as const,      // Usa "as const" para garantir que o tipo literal correto seja passado
+      debitCard: "all" as const,       // Mesmo ajuste para debitCard
+      ticket: "all" as const,          // Mesmo ajuste para ticket
+      bankTransfer: "all" as const,    // Mesmo ajuste para bankTransfer
+      atm: "all" as const,             // Mesmo ajuste para atm
+      maxInstallments: 2
+    },
   };
 
-  const handleAddCard = async () => {
+  const onSubmit = async ({ selectedPaymentMethod, formData }: { selectedPaymentMethod: string; formData: any }) => {
     try {
-      if (
-        newCardData.name &&
-        newCardData.cardNumber &&
-        newCardData.expirationDate
-      ) {
-        await createCreditCard({
-          name: newCardData.name,
-          cardNumber: newCardData.cardNumber,
-          expirationDate: newCardData.expirationDate,
-          // Não envie o CVV ao backend
-        });
-
-        const cards = await getCreditCards();
-        setCreditCards(cards);
-
-        setNewCardData({
-          name: '',
-          cardNumber: '',
-          expirationDate: '',
-        });
-
-        setIsAddCardVisible(false);
-
-        setNotification({ message: 'Cartão cadastrado com sucesso!', type: 'success' });
+      const response = await fetch('http://localhost:5000/api/process_payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      const result = await response.json();
+  
+      if (result.success) {
+        clearCart();
+        router.push('/purchase-success');
       } else {
-        setNotification({ message: 'Por favor, preencha todos os campos do cartão.', type: 'error' });
+        router.push('/purchase-failure');
       }
-    } catch (error) {
-      console.error('Erro ao adicionar cartão:', error);
-      setNotification({ message: 'Erro ao adicionar cartão.', type: 'error' });
-    }
-  };
-
-  const handleConfirmPayment = async () => {
-    try {
-      if (isAddCardVisible) {
-        await handleAddCard();
-      }
-  
-      const selectedCard = creditCards.find((card) => card.id === selectedCardId);
-  
-      if (!selectedCard) {
-        setNotification({ message: 'Selecione um cartão para realizar o pagamento.', type: 'error' });
-        return;
-      }
-  
-      if (!cvv) {
-        setNotification({ message: 'Por favor, insira o CVV do cartão.', type: 'error' });
-        return;
-      }
-  
-      if (!user) {
-        setNotification({ message: 'Usuário não autenticado.', type: 'error' });
-        return;
-      }
-  
-      // Enviar os itens do carrinho para o backend
-      const documentIds = cartItems.map((item) => item); // Supondo que cartItems contenha os IDs dos documentos
-      const purchasedDocuments = await createPurchasedDocuments({ documentIds });
-  
-      // Sucesso: limpar o carrinho
-      clearCart();
-  
-      // Exibir notificação de sucesso
-      setNotification({ message: 'Pagamento realizado com sucesso!', type: 'success' });
-  
-      // Redirecionar para a página de sucesso
-      router.push('/purchase-success');
     } catch (error) {
       console.error('Erro ao processar o pagamento:', error);
       setNotification({ message: 'Erro ao processar o pagamento.', type: 'error' });
     }
   };
 
-  const handlePayWithBoleto = () => {
-    // Implemente a lógica para pagamento com boleto
-    alert('Pagamento com boleto não implementado.');
+  const onError = (error: any) => {
+    console.error('Erro no Payment Brick:', error);
   };
 
-  const handlePayWithPix = () => {
-    // Implemente a lógica para pagamento com pix
-    alert('Pagamento com pix não implementado.');
+  const onReady = () => {
+    console.log('Payment Brick pronto para uso.');
   };
 
-  // Exibir um indicador de carregamento enquanto verifica autenticação
-  if (loading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <p>Verificando autenticação...</p>
-      </div>
-    );
+  if (!user) {
+    return <div>Carregando...</div>; // Exibe carregamento enquanto busca as informações do usuário
   }
 
   return (
     <div className={styles.paymentContainer}>
       <h1 className={styles.title}>Pagamento</h1>
+
       <div className={styles.contentContainer}>
         <div className={styles.leftSide}>
           <div className={styles.billingBox}>
             <div className={styles.billingHeader}>
               <h2 className={styles.billingTitle}>Informações de cobrança</h2>
-              {hasMissingBillingInfo() && (
-                <p className={styles.missingInfo}>Falta preencher</p>
-              )}
               <img
                 src="/icon/down-arrow.svg"
                 alt="Mostrar ou esconder informações de cobrança"
@@ -343,75 +272,20 @@ const PaymentPage: React.FC = () => {
             )}
           </div>
 
-          {/* Cartões de crédito */}
+          {/* Cartões de crédito - Renderização do Payment Brick */}
           <div className={styles.creditCardBox}>
             <div className={styles.creditCardHeader}>
               <h2 className={styles.creditCardTitle}>Formas de pagamento</h2>
             </div>
-
-            {creditCards.length > 0 ? (
-              <select
-                className={styles.cardSelect}
-                value={selectedCardId}
-                onChange={(e) => setSelectedCardId(e.target.value)}
-              >
-                {creditCards.map((card) => (
-                  <option key={card.id} value={card.id}>
-                    {card.name} - **** **** **** {card.cardNumber.slice(-4)}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p>Nenhum cartão cadastrado.</p>
-            )}
-
-            <hr className={styles.separator} />
-
-            <div className={styles.buttonContainer}>
-              <button className={styles.addButton} onClick={() => setIsAddCardVisible(true)}>
-                Adicionar cartão
-              </button>
-              <button className={styles.payWithButton} onClick={handlePayWithBoleto}>
-                Pagar com boleto
-              </button>
-              <button className={styles.payWithButton} onClick={handlePayWithPix}>
-                Pagar com pix
-              </button>
+            <div id="paymentBrick_container">
+              <Payment
+                initialization={initialization}
+                customization={customization}
+                onSubmit={onSubmit}
+                onReady={onReady}
+                onError={onError}
+              />
             </div>
-
-            {isAddCardVisible && (
-              <div className={styles.addCardForm}>
-                <Input
-                  label="Nome no Cartão"
-                  name="name"
-                  type="text"
-                  value={newCardData.name}
-                  onChange={(e) => setNewCardData({ ...newCardData, name: e.target.value })}
-                />
-                <Input
-                  label="Número do Cartão"
-                  name="cardNumber"
-                  type="text"
-                  value={newCardData.cardNumber}
-                  onChange={(e) => setNewCardData({ ...newCardData, cardNumber: e.target.value })}
-                />
-                <Input
-                  label="Data de Expiração"
-                  name="expirationDate"
-                  type="month"
-                  value={newCardData.expirationDate}
-                  onChange={(e) => setNewCardData({ ...newCardData, expirationDate: e.target.value })}
-                />
-                <div className={styles.cardFormButtons}>
-                  <button className={styles.saveCardButton} onClick={handleAddCard}>
-                    Salvar Cartão
-                  </button>
-                  <button className={styles.cancelCardButton} onClick={() => setIsAddCardVisible(false)}>
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -432,25 +306,12 @@ const PaymentPage: React.FC = () => {
               <span>R$ {subtotal.toFixed(2)}</span>
             </div>
 
-            {/* Campo para CVV durante o pagamento */}
-            <Input
-              label="CVV"
-              name="cvv"
-              type="password"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value)}
-            />
-
-            <button
-              className={styles.payButton}
-              onClick={handleConfirmPayment}
-              disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}
-            >
+            <button className={styles.payButton} disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}>
               Pagar
             </button>
 
             <p className={styles.payText}>
-              Ao clicar em "Concluir compra", você aceita nossos Termos e Condições e nossa Política de Privacidade, bem como concorda em cadastrar seu(s) produto(s) em nosso serviço de renovação automática, que pode ser cancelado a qualquer momento por meio da página “Renovações e cobrança” em sua conta. Para as renovações automáticas, a cobrança é feita com o método de pagamento selecionado para este pedido ou seu(s) método(s) de pagamento alternativo(s), até o cancelamento. Seus dados de pagamento serão salvos como um método de pagamento alternativo para futuras compras e renovações de assinatura. Seu pagamento está sendo processado em: Brasil.
+              Ao clicar em "Concluir compra", você aceita nossos Termos e Condições e nossa Política de Privacidade, bem como concorda em cadastrar seu(s) produto(s) em nosso serviço de renovação automática, que pode ser cancelado a qualquer momento.
             </p>
           </div>
 
@@ -499,10 +360,7 @@ const PaymentPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Exibir notificação se existir */}
-      {notification && (
-        <Notification message={notification.message} type={notification.type} />
-      )}
+      {notification && <Notification message={notification.message} type={notification.type} />}
     </div>
   );
 };

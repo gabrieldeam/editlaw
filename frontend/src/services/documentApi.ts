@@ -29,6 +29,28 @@ export interface DocumentData {
   updatedAt?: string;
 }
 
+export interface DocumentDataCategory {
+  id: string;
+  title: string;
+  preco: number;
+  precoDesconto: number;
+  descricao: string;
+  autor: string;
+  image: string;
+  categoryId: string;
+  category: {
+    id: string;
+    name: string;
+    description: string;
+    image1: string;
+    image2: string;
+    image3: string;
+  }; // Adiciona a categoria aqui
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 
 export interface PaginatedDocumentsResponse {
   documents: Document[];
@@ -58,15 +80,17 @@ export const getAllDocuments = async (page = 1, size = 10): Promise<PaginatedDoc
 };
 
 // Função para buscar um documento por ID
-export const getDocumentById = async (id: string): Promise<Document> => {
+// Modifique o tipo de retorno da função getDocumentById
+export const getDocumentById = async (id: string): Promise<DocumentDataCategory> => {
   try {
-    const response = await api.get<Document>(`/documents/${id}`);
+    const response = await api.get<DocumentDataCategory>(`/documents/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Erro ao buscar o documento com ID ${id}:`, error);
     throw error;
   }
 };
+
 
 // Função para criar um novo documento usando FormData
 export const createDocument = async (formData: FormData): Promise<Document> => {

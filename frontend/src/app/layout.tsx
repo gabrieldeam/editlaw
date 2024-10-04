@@ -4,10 +4,11 @@ import '../styles/globals.css';
 import { ReactNode, useEffect, useState } from 'react';
 import Header from '../components/header/Header';
 import { usePathname, useRouter } from 'next/navigation';
-import { checkAuth, isAdmin } from '../services/authService'; 
+import { checkAuth, isAdmin } from '../services/authService';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { PaymentProvider } from '../context/PaymentContext';
+import { initMercadoPago } from '@mercadopago/sdk-react';
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -74,6 +75,16 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
 
     verifyAuthAndRole();
   }, [pathname, router]);
+
+  // Inicializa a biblioteca do Mercado Pago usando a variável de ambiente
+  useEffect(() => {
+    const publicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
+    if (publicKey) {
+      initMercadoPago(publicKey); // Inicializando o Mercado Pago com a chave pública do .env.local
+    } else {
+      console.error('Mercado Pago PUBLIC_KEY não definida.');
+    }
+  }, []);
 
   if (loading) {
     // Mostra um spinner ou loader enquanto verifica a autenticação

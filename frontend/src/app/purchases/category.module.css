@@ -1,0 +1,131 @@
+.container {
+    padding: 70px;
+    margin-top: 120px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+
+  .categoryName {
+    font-size: 28px;
+    margin: 0;
+  }
+
+  .checkIcon {
+    width: 82px;
+    height: 62.68px;
+    margin-top: -40px;
+  }
+  
+  .documentList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+  }
+  
+  .documentCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #D9D9D9;
+    padding: 15px;
+    border-radius: 50px;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .documentImage {
+    width: 200px;
+    height: 286.75px;
+    object-fit: cover;
+    margin-right: 25px;
+    z-index: 1;
+    margin-left: -20px;
+    margin-top: -16px;
+  }
+  
+  .documentInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .documentTitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+  
+  .documentPrice {
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+  
+  .precoDesconto {
+    color: #000000;
+    font-weight: bold;
+  }
+  
+  .precoOriginal {
+    text-decoration: line-through;
+    color: #989898;
+    margin-left: 10px;
+  }
+  
+  .documentAuthor {
+    font-size: 20px;
+    color: #989898;
+    margin-bottom: 20px;
+  }
+  
+  .buyButton {
+    background-color: #45C907;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+  .cartButton {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+  .filterContainer {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .filterButton {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .filterButton.active {
+    background-color: #7B33E5;
+    color: #fff;
+  }
+
+  
+  @media (max-width: 1024px) {
+    .container {
+        padding: 20px;
+    }
+
+}
