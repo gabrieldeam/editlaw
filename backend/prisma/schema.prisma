@@ -156,5 +156,4 @@ model PurchasedDocument {
   exclusionDate  DateTime?
   purchaseDate    DateTime   @default(now())
 
-  @@unique([userId, documentId]) // Garante que um usuário compre um documento apenas uma vez
 }

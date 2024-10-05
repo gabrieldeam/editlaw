@@ -12,15 +12,15 @@ import { CreditCard } from '@/types/creditCard';
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
 import { useAuth } from '../../../context/AuthContext';
+import { usePayment } from '../../../context/PaymentContext'; // Importação do contexto de pagamento
 
 const PaymentPage: React.FC = () => {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
   const { isAuthenticated, loading, user } = useAuth();
+  const { totalAmount } = usePayment(); // Pega o total com desconto aplicado
 
   const [documents, setDocuments] = useState<DocumentData[]>([]);
-  const [subtotal, setSubtotal] = useState<number>(0);
-
   const [billingInfo, setBillingInfo] = useState({
     country: '',
     phone: '',
@@ -47,9 +47,6 @@ const PaymentPage: React.FC = () => {
     expirationDate: '',
   });
 
-  // Estado para CVV durante o pagamento
-  const [cvv, setCvv] = useState('');
-
   // Verificar autenticação
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -61,25 +58,19 @@ const PaymentPage: React.FC = () => {
   useEffect(() => {
     const fetchDocuments = async () => {
       const docs: DocumentData[] = [];
-      let total = 0;
 
       for (const itemId of cartItems) {
         const document = await getDocumentById(itemId);
         docs.push(document);
-
-        // Calcular subtotal
-        total += document.precoDesconto ? document.precoDesconto : document.preco;
       }
 
       setDocuments(docs);
-      setSubtotal(total);
     };
 
     if (cartItems.length > 0) {
       fetchDocuments();
     } else {
       setDocuments([]);
-      setSubtotal(0);
     }
   }, [cartItems]);
 
@@ -193,27 +184,25 @@ const PaymentPage: React.FC = () => {
         setNotification({ message: 'Selecione um cartão para realizar o pagamento.', type: 'error' });
         return;
       }
-  
-      if (!cvv) {
-        setNotification({ message: 'Por favor, insira o CVV do cartão.', type: 'error' });
-        return;
-      }
-  
+
       if (!user) {
         setNotification({ message: 'Usuário não autenticado.', type: 'error' });
         return;
       }
-  
+
       // Enviar os itens do carrinho para o backend
-      const documentIds = cartItems.map((item) => item); // Supondo que cartItems contenha os IDs dos documentos
+      const documentIds = cartItems.map((item) => item);
       const purchasedDocuments = await createPurchasedDocuments({ documentIds });
-  
+
       // Sucesso: limpar o carrinho
       clearCart();
-  
+
+      // Remove o cupom do localStorage após pagamento bem-sucedido
+      localStorage.removeItem('promoCode');
+
       // Exibir notificação de sucesso
       setNotification({ message: 'Pagamento realizado com sucesso!', type: 'success' });
-  
+
       // Redirecionar para a página de sucesso
       router.push('/purchase-success');
     } catch (error) {
@@ -429,22 +418,13 @@ const PaymentPage: React.FC = () => {
 
             <div className={styles.subtotalRow}>
               <span>Total a pagar:</span>
-              <span>R$ {subtotal.toFixed(2)}</span>
+              <span>R$ {totalAmount.toFixed(2)}</span> {/* Usando totalAmount aqui */}
             </div>
-
-            {/* Campo para CVV durante o pagamento */}
-            <Input
-              label="CVV"
-              name="cvv"
-              type="password"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value)}
-            />
 
             <button
               className={styles.payButton}
               onClick={handleConfirmPayment}
-              disabled={subtotal === 0 || documents.length === 0 || !isBillingInfoValid()}
+              disabled={totalAmount === 0 || documents.length === 0 || !isBillingInfoValid()}
             >
               Pagar
             </button>

@@ -11,32 +11,47 @@ interface Category {
   name: string;
 }
 
+interface PurchasedDocument {
+  purchaseId: string; // ID único da compra
+  document: DocumentDataCategory; // Dados do documento
+}
+
 const PurchasedDocumentsPage: React.FC = () => {
-  const [documents, setDocuments] = useState<DocumentDataCategory[]>([]);
+  const [purchasedDocuments, setPurchasedDocuments] = useState<PurchasedDocument[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<DocumentDataCategory[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<PurchasedDocument[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchPurchasedDocuments = async () => {
       try {
-        const { purchasedDocuments } = await getPurchasedDocuments();
-        const documentDetailsPromises = purchasedDocuments.map(async (purchasedDocument) => {
-          const document = await getDocumentById(purchasedDocument.documentId);
-          return document;
+        console.log('Fetching purchased documents...'); // Debugging
+        const { purchasedDocuments: fetchedPurchases } = await getPurchasedDocuments();
+        console.log('Purchased Documents:', fetchedPurchases); // Debugging
+
+        const documentDetailsPromises = fetchedPurchases.map(async (purchase) => {
+          const document = await getDocumentById(purchase.documentId);
+          return {
+            purchaseId: purchase.id, // Supondo que a compra tem um campo `id`
+            document,
+          };
         });
 
-        const documentDetails = await Promise.all(documentDetailsPromises);
-        setDocuments(documentDetails);
-        setFilteredDocuments(documentDetails);
+        const purchasedDocumentDetails: PurchasedDocument[] = await Promise.all(documentDetailsPromises);
+        console.log('Purchased Document Details:', purchasedDocumentDetails); // Debugging
 
-        // Extraindo categorias únicas dos documentos
-        const uniqueCategories = documentDetails
-          .map((document) => document.category)
-          .filter((category, index, self) => self.findIndex((cat) => cat.id === category.id) === index);
+        setPurchasedDocuments(purchasedDocumentDetails);
+        setFilteredDocuments(purchasedDocumentDetails);
 
-        setCategories(uniqueCategories);
+        // Extrair categorias únicas dos documentos
+        const uniqueCategoriesMap = new Map<string, Category>();
+        purchasedDocumentDetails.forEach(({ document }) => {
+          if (document.category && !uniqueCategoriesMap.has(document.category.id)) {
+            uniqueCategoriesMap.set(document.category.id, document.category);
+          }
+        });
+        setCategories(Array.from(uniqueCategoriesMap.values()));
       } catch (error) {
         console.error('Erro ao buscar documentos comprados:', error);
       }
@@ -47,18 +62,20 @@ const PurchasedDocumentsPage: React.FC = () => {
 
   const handleCategoryFilter = (categoryId: string | null) => {
     if (categoryId) {
-      const filtered = documents.filter((document) => document.categoryId === categoryId); // Use categoryId aqui
+      const filtered = purchasedDocuments.filter(
+        ({ document }) => document.categoryId === categoryId
+      );
       setFilteredDocuments(filtered);
       setActiveCategory(categoryId);
     } else {
-      setFilteredDocuments(documents);
+      setFilteredDocuments([...purchasedDocuments]);
       setActiveCategory(null);
     }
   };
 
-  const handleDocumentClick = (documentId?: string) => {
-    if (documentId) {
-      router.push(`/document/${documentId}`);
+  const handleDocumentClick = (purchaseId?: string) => {
+    if (purchaseId) {
+      router.push(`/purchase-document/${purchaseId}`);
     } else {
       console.error('Document ID is undefined');
     }
@@ -92,11 +109,11 @@ const PurchasedDocumentsPage: React.FC = () => {
 
       {filteredDocuments.length > 0 ? (
         <div className={styles.documentList}>
-          {filteredDocuments.map((document) => (
+          {filteredDocuments.map(({ purchaseId, document }) => (
             <div
-              key={document.id}
+              key={purchaseId} // Usando purchaseId como key
               className={styles.documentCard}
-              onClick={() => handleDocumentClick(document.id)}
+              onClick={() => handleDocumentClick(purchaseId)}
               style={{ cursor: 'pointer' }}
             >
               <img
@@ -106,15 +123,14 @@ const PurchasedDocumentsPage: React.FC = () => {
               />
               <div className={styles.documentInfo}>
                 <h2 className={styles.documentTitle}>{document.title}</h2>
-                <p className={styles.documentAuthor}>{document.autor}</p>
-                
+
                 {/* Mostrar apenas os primeiros 100 caracteres da descrição */}
                 <p className={styles.documentDescription}>
-                  {document.descricao.length > 100 
-                    ? `${document.descricao.slice(0, 100)}...` 
+                  {document.descricao.length > 100
+                    ? `${document.descricao.slice(0, 100)}...`
                     : document.descricao}
                 </p>
-                
+
                 <p className={styles.documentCategory}>{document.category.name}</p>
                 <button className={styles.buyButton}>Editar</button>
               </div>

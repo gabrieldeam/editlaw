@@ -74,10 +74,16 @@
     color: #989898;
     margin-left: 10px;
   }
-  
-  .documentAuthor {
-    font-size: 20px;
+
+  .documentDescription {
+    font-size: 15px;
     color: #989898;
+    margin-bottom: 20px;
+  }
+
+  .documentCategory {
+    font-size: 15px;
+    color: #000000;
     margin-bottom: 20px;
   }
   
@@ -113,12 +119,12 @@
     background-color: #f0f0f0;
     border: none;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 100px;
     font-size: 16px;
   }
   
   .filterButton.active {
-    background-color: #7B33E5;
+    background-color: #000000;
     color: #fff;
   }
 

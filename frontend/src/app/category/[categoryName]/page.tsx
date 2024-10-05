@@ -53,6 +53,16 @@ const CategoryPage: React.FC = () => {
     }
   };
 
+  const handleBuyNow = (documentId?: string) => {
+    if (documentId) {
+      addToCart(documentId);
+      router.push('/cart');
+    } else {
+      console.error('Document ID is undefined');
+    }
+  };
+  
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>        
@@ -94,7 +104,16 @@ const CategoryPage: React.FC = () => {
                   )}
                 </p>
                 <p className={styles.documentAuthor}>{document.autor}</p>
-                <button className={styles.buyButton}>Comprar</button>
+                <button
+                  className={styles.buyButton}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Para evitar que o clique no botão também acione o clique do documento
+                    handleBuyNow(document.id);
+                  }}
+                >
+                  Comprar
+                </button>
+
                 <button
                   className={styles.cartButton}
                   onClick={(e) => {

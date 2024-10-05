@@ -3,8 +3,65 @@ import { prisma } from '../prismaClient';
 import jwt from 'jsonwebtoken';
 
 /**
- * Cria um ou mais documentos comprados para o usuário autenticado.
- * A data de compra é automaticamente a data atual, e a data de exclusão será um ano após a compra.
+ * Duplica as páginas e elementos após a compra de um documento.
+ * As novas páginas terão o `documentId` atualizado para o `purchasedDocument.id`.
+ */
+async function duplicateDocumentData(purchaseId: string, documentId: string) {
+  try {
+    // Buscar todas as páginas associadas ao documento original
+    const pages = await prisma.page.findMany({
+      where: { documentId: documentId },
+      include: { elements: true }, // Inclui os elementos associados à página
+    });
+
+    for (const page of pages) {
+      // Criar uma nova página associada ao PurchasedDocument (alterando o documentId para o purchasedDocument.id)
+      const newPage = await prisma.page.create({
+        data: {
+          documentId: purchaseId, // Associa a nova página ao PurchasedDocument
+          pageNumber: page.pageNumber,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      // Duplicar os elementos da página original para a nova página
+      const elements = page.elements;
+      for (const element of elements) {
+        await prisma.element.create({
+          data: {
+            pageId: newPage.id, // Associando o elemento à nova página
+            type: element.type,
+            x: element.x,
+            y: element.y,
+            rotation: element.rotation,
+            content: element.content,
+            src: element.src,
+            fontSize: element.fontSize,
+            bold: element.bold,
+            italic: element.italic,
+            underline: element.underline,
+            fill: element.fill,
+            width: element.width,
+            height: element.height,
+            radius: element.radius,
+            textType: element.textType,
+            highlightColor: element.highlightColor,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao duplicar dados do documento:', error);
+  }
+}
+
+/**
+ * Cria um ou mais documentos comprados para o usuário autenticado
+ * e duplica as páginas e os elementos associados ao documento comprado,
+ * atualizando o documentId para o ID do PurchasedDocument.
  */
 export const createPurchasedDocuments = async (req: Request, res: Response) => {
   const { documentIds } = req.body; // Recebe uma lista de documentIds
@@ -33,7 +90,8 @@ export const createPurchasedDocuments = async (req: Request, res: Response) => {
     // Cria um registro para cada documentId fornecido
     const purchasedDocuments = await Promise.all(
       documentIds.map(async (documentId: string) => {
-        return await prisma.purchasedDocument.create({
+        // Criar um registro de compra de documento
+        const purchasedDocument = await prisma.purchasedDocument.create({
           data: {
             userId: decoded.userId, // Obtido a partir do token
             documentId,
@@ -41,6 +99,11 @@ export const createPurchasedDocuments = async (req: Request, res: Response) => {
             exclusionDate,
           },
         });
+
+        // Após a compra, duplicar as páginas e elementos do documento, associando ao novo purchasedDocument.id
+        await duplicateDocumentData(purchasedDocument.id, documentId);
+
+        return purchasedDocument;
       })
     );
 
@@ -53,7 +116,6 @@ export const createPurchasedDocuments = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Erro ao criar os documentos comprados' });
   }
 };
-
 
 /**
  * Pega os documentos comprados do usuário autenticado com paginação.

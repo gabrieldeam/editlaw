@@ -5,20 +5,29 @@ import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getActiveCouponByName } from '@/services/couponService';
 import { useCart } from '../../context/CartContext';
 import { useRouter } from 'next/navigation'; 
-import { usePayment } from '../../context/PaymentContext'; // Importa o contexto de pagamento
+import { usePayment } from '../../context/PaymentContext';
 import Notification from '../../components/notification/Notification';
 import styles from './cart.module.css';
 
 const CartPage: React.FC = () => {
   const { cartItems, removeFromCart } = useCart();
-  const { setTotalAmount } = usePayment(); // Usa o contexto de pagamento
-  const router = useRouter(); // Para redirecionar o usuário
+  const { setTotalAmount } = usePayment();
+  const router = useRouter();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
-  const [promoCode, setPromoCode] = useState<string>(''); // Código promocional
-  const [discount, setDiscount] = useState<number>(0); // Estado para armazenar o valor do desconto
+  const [promoCode, setPromoCode] = useState<string>(''); // Cupom promocional
+  const [discount, setDiscount] = useState<number>(0); // Valor do desconto
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Carregar cupom salvo do localStorage e aplicar automaticamente
+  useEffect(() => {
+    const storedPromoCode = localStorage.getItem('promoCode');
+    if (storedPromoCode) {
+      setPromoCode(storedPromoCode);
+    }
+  }, []);
+
+  // Atualizar subtotal quando os itens do carrinho mudam
   useEffect(() => {
     const fetchDocuments = async () => {
       const docs: DocumentData[] = [];
@@ -27,8 +36,6 @@ const CartPage: React.FC = () => {
       for (const itemId of cartItems) {
         const document = await getDocumentById(itemId);
         docs.push(document);
-
-        // Calcular subtotal
         total += document.precoDesconto ? document.precoDesconto : document.preco;
       }
 
@@ -44,6 +51,32 @@ const CartPage: React.FC = () => {
     }
   }, [cartItems]);
 
+  // Aplicar automaticamente o cupom quando o subtotal muda
+  useEffect(() => {
+    if (promoCode && subtotal > 0) {
+      applyStoredCoupon(promoCode); // Aplica o desconto baseado no subtotal
+    }
+  }, [subtotal, promoCode]);
+
+  // Função para aplicar o cupom
+  const applyStoredCoupon = async (code: string) => {
+    try {
+      const response = await getActiveCouponByName(code);
+      if ('discountRate' in response) {
+        const discountRate = response.discountRate;
+        const discountAmount = (subtotal * discountRate) / 100;
+
+        setDiscount(discountAmount); // Aplica o desconto
+        setNotification({ message: `Cupom ${code} reaplicado com sucesso!`, type: 'success' });
+      } else {
+        setNotification({ message: response.message, type: 'error' });
+        setDiscount(0); // Remove o desconto caso o código seja inválido
+      }
+    } catch (error) {
+      setNotification({ message: 'Erro ao reaplicar o código promocional.', type: 'error' });
+    }
+  };
+
   const handleRemoveItem = (documentId?: string) => {
     if (documentId) {
       removeFromCart(documentId);
@@ -58,28 +91,45 @@ const CartPage: React.FC = () => {
       
       if ('discountRate' in response) {
         const discountRate = response.discountRate;
-        const discountAmount = (subtotal * discountRate) / 100; // Calcular o desconto
+        const discountAmount = (subtotal * discountRate) / 100;
 
-        setDiscount(discountAmount); // Atualiza o desconto
+        setDiscount(discountAmount); // Aplica o desconto
         setNotification({ message: `Código promocional aplicado com sucesso! Desconto de ${discountRate}%`, type: 'success' });
+        
+        // Armazena o código promocional no localStorage
+        localStorage.setItem('promoCode', promoCode);
       } else {
         setNotification({ message: response.message, type: 'error' });
         setDiscount(0); // Se o código for inválido, remove o desconto
+        localStorage.removeItem('promoCode'); // Remove o cupom inválido do localStorage
       }
     } catch (error) {
       setNotification({ message: 'Erro ao aplicar o código promocional.', type: 'error' });
     }
   };
 
+  // Função para monitorar mudanças no campo de cupom
+  const handlePromoCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const code = e.target.value;
+    setPromoCode(code);
+
+    if (!code) {
+      // Se o campo estiver vazio, remover o desconto e o cupom do localStorage
+      setDiscount(0);
+      localStorage.removeItem('promoCode');
+      setNotification({ message: 'Cupom removido.', type: 'success' });
+    }
+  };
+
   const handlePayment = () => {
     if (subtotal > 0 && documents.length > 0) {
-      const totalAmount = subtotal - discount;
+      const totalAmount = subtotal - discount; // Calcula o valor total com o desconto
       setTotalAmount(totalAmount); // Armazena o total no contexto
       router.push('/cart/payment'); // Redireciona para a página de pagamento
     } else {
       setNotification({ message: 'O carrinho está vazio ou o total é inválido.', type: 'error' });
     }
-  };
+  };  
 
   return (
     <div className={styles.container}>
@@ -131,7 +181,7 @@ const CartPage: React.FC = () => {
               <span>R$ {subtotal.toFixed(2)}</span>
             </div>
 
-            {/* Se houver desconto, exibir o valor do desconto */}
+            {/* Exibir o desconto se houver */}
             {discount > 0 && (
               <div className={styles.discountRow}>
                 <span>Desconto</span>
@@ -151,7 +201,7 @@ const CartPage: React.FC = () => {
                 type="text"
                 className={styles.promoInput}
                 value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
+                onChange={handlePromoCodeChange} // Chama a função ao alterar o valor
                 placeholder="Insira o código"
               />
               <button className={styles.applyButton} onClick={handleApplyPromoCode}>

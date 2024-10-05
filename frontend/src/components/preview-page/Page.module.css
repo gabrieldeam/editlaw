@@ -1,0 +1,34 @@
+.pageContainer {
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.colorInput {
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.fontSizeInput {
+  width: 50px;
+  padding: 5px;
+}
+
+.textEditTextarea {
+  background: white;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  width: 500px;
+  height: 100px;
+  margin-top: 40px;
+  position: absolute;
+  font-family: Arial, sans-serif;
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    transform: scale(0.5);
+  }
+}
