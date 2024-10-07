@@ -9,6 +9,7 @@ import {
   deleteDocument,
   getDocumentsWithoutPages,
   getDocumentsByCategory,
+  searchDocuments,
 } from '../controllers/documentController';
 
 const router = Router();
@@ -184,6 +185,107 @@ router.get('/documents/category/:categoryId', getDocumentsByCategory);
  *                   error: "Descrição do erro"
  */
 router.get('/documents/no-pages', getDocumentsWithoutPages);
+
+/**
+ * @swagger
+ * /documents/search:
+ *   get:
+ *     summary: Pesquisar documentos pelo nome e opcionalmente filtrar por ID da categoria
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         description: Termo a ser pesquisado no título dos documentos
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: categoryId
+ *         required: false
+ *         description: ID da categoria para filtrar os documentos
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Número da página para paginação (padrão: 1)
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: size
+ *         required: false
+ *         description: Número de documentos por página (padrão: 10)
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Resultados da pesquisa de documentos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 documents:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Document'
+ *                 totalPages:
+ *                   type: integer
+ *                 currentPage:
+ *                   type: integer
+ *                 totalDocuments:
+ *                   type: integer
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   documents: 
+ *                     - id: "uuid-do-documento-1"
+ *                       title: "Título do Documento 1"
+ *                       preco: 100.0
+ *                       precoDesconto: null
+ *                       descricao: "Descrição do Documento 1"
+ *                       autor: "Autor 1"
+ *                       image: "/upload/imagem1.jpg"
+ *                       categoryId: "uuid-da-categoria-1"
+ *                       createdAt: "2024-04-01T00:00:00.000Z"
+ *                       updatedAt: "2024-04-01T00:00:00.000Z"                      
+ *                   totalPages: 5
+ *                   currentPage: 1
+ *                   totalDocuments: 50
+ *       400:
+ *         description: Parâmetros inválidos ou ausentes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   message: "O parâmetro 'name' é obrigatório para a pesquisa."
+ *       500:
+ *         description: Erro no servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: string
+ *             examples:
+ *               application/json:
+ *                 value:
+ *                   message: "Erro ao pesquisar documentos"
+ *                   error: "Descrição do erro"
+ */
+router.get('/documents/search', searchDocuments);
 
 /**
  * @swagger

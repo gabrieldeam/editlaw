@@ -27,8 +27,10 @@
   flex: 1;
   overflow-y: auto; /* Adiciona rolagem vertical quando necessário */
   padding: 20px;
-  margin-top: 110px;
+  margin-top: 60px;
+  gap: 10px;
 }
+
 
 .pageWrapper {
   position: relative;
@@ -53,16 +55,16 @@
   margin: 10px 0;
   padding: 10px 20px;
   cursor: pointer;
-  border: 1px solid #007bff;
+  border: 1px solid #45C907;
   border-radius: 4px;
-  background-color: #007bff;
+  background-color: #45C907;
   color: #fff;
   transition: background-color 0.3s, transform 0.2s;
   font-size: 16px;
 }
 
 .addPageButton:hover {
-  background-color: #0056b3;
+  background-color: #45C907;
 }
 
 .addPageButton:active {
@@ -91,16 +93,16 @@
 .deletePageButton {
   padding: 5px 10px;
   cursor: pointer;
-  border: 1px solid #dc3545;
+  border: 1px solid #45C907;
   border-radius: 4px;
-  background-color: #dc3545;
+  background-color: #45C907;
   color: #fff;
   transition: background-color 0.3s, transform 0.2s;
   font-size: 14px;
 }
 
 .deletePageButton:hover {
-  background-color: #c82333;
+  background-color: #45C907;
 }
 
 .deletePageButton:active {
@@ -108,7 +110,7 @@
 }
 
 .pageWrapper:hover {
-  border-color: #007bff;
+  border-color: #45C907;
 }
 
 .rightPanel {
@@ -131,7 +133,7 @@
 .tabButton {
   padding: 10px 20px;
   cursor: pointer;
-  border: 1px solid #007bff;
+  border: 1px solid #45C907;
   border-radius: 4px;
   background-color: #ffffff;
   color: #007bff;
@@ -140,7 +142,7 @@
 }
 
 .tabButton:hover {
-  background-color: #007bff;
+  background-color: #45C907;
   color: #ffffff;
 }
 
@@ -149,7 +151,7 @@
 }
 
 .activeTab {
-  background-color: #007bff;
+  background-color: #45C907;
   color: #ffffff;
 }
 
@@ -168,56 +170,75 @@
 @media (max-width: 768px) {
   .mainContent {
     flex-direction: column;
-    gap: 10px; /* Reduzir o espaçamento entre os painéis em mobile */
-    padding: 10px; /* Adicionar padding se necessário */
+    gap: 0; /* Remover espaçamento entre os painéis no mobile */
+    padding: 0;
+    margin-top: 15px;
   }
 
-  .leftPanel, .rightPanel {
+  .leftPanel {
     flex: none;
+    height: 65vh; /* 50% da altura da tela */
     width: 100%;
-    padding: 10px; /* Ajustar padding para mobile */
-  }
-
-  .pagesContainer {
-    margin-top: 20px; /* Reduzir margem no mobile */
-    padding: 10px; /* Ajustar padding para mobile */
-  }
-
-  .pageWrapper {
-    margin: 10px 0;
-    padding: 5px;
-  }
-
-  .addPageButton {
-    width: 100%;
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-
-  .duplicatePageButton, .deletePageButton {
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-
-  .tabButtons {
-    flex-direction: column;
-    gap: 5px;
-    margin-top: 20px; /* Ajustar margem para mobile */
-  }
-
-  .tabButton {
-    width: 100%;
-    text-align: center;
+    padding: 10px;
+    overflow-y: hidden; /* Remover rolagem vertical */
   }
 
   .rightPanel {
-    padding: 20px; /* Ajustar padding para mobile */
+    flex: none;
+    height: 35vh; /* 50% da altura da tela */
+    width: 100%;
+    padding: 10px;
+    overflow-y: auto;
   }
 
-  .cadastroContent {
-    font-size: 16px;
+  .pagesContainer {
+    margin-top: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .pageWrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 60px;
+    left: 615px;
+  }
+
+  .pageContainer {
+    transform: scale(0.5);
+    transform-origin: top center;
+  }
+
+  .downloadButton {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px;
+    background-color: #45C907;
+    color: #ffffff;
+    border-radius: 0;
+    z-index: 1000; /* Garantir que o botão fique acima de outros elementos */
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .downloadButton:hover {
+    background-color: #0a6e0f; /* Cor de fundo ao passar o mouse */
+  }
+
+  .categoryInfoBox {
+    top: 65%;
+    left: 20%;
   }
 }
+
 
 
 .documentSelector {

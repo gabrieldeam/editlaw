@@ -8,7 +8,7 @@ import TextList from './TextList';
 import styles from './DocumentEditor.module.css';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  getPagesByDocumentId,
+  getPagesByPurchasedDocumentId,
   createPage,
   deletePage as deletePageApi,
 } from '../../services/pageService';
@@ -18,7 +18,8 @@ import {
   deleteElement,
   updateElement,
 } from '../../services/elementService';
-import debounce from 'lodash.debounce'; // Import do debounce
+import debounce from 'lodash.debounce';
+import jsPDF from 'jspdf';
 
 // Definição das interfaces
 interface PageData {
@@ -58,11 +59,14 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
   } | null>(null);
   const [activeTab, setActiveTab] = useState<'editor' | 'cadastro'>('editor');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Inicializa pageRefs como um array de refs
+  const pageRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   // Função para carregar as páginas e os elementos
   const loadPages = async () => {
     try {
-      const existingPages = await getPagesByDocumentId(documentId);
+      const existingPages = await getPagesByPurchasedDocumentId(documentId);
       const pagesWithElements = await Promise.all(
         existingPages.map(async (page) => {
           const elements = await getElementsByPageId(page.id);
@@ -490,6 +494,39 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
       .map((el) => ({ ...el, pageId: page.id }))
   );
 
+  // Assegura que pageRefs.current tenha o mesmo comprimento que pages
+  useEffect(() => {
+    pageRefs.current = pageRefs.current.slice(0, pages.length);
+    while (pageRefs.current.length < pages.length) {
+      pageRefs.current.push(null);
+    }
+  }, [pages.length]);
+
+  // Função para baixar o PDF
+  const downloadPdf = async () => {
+    const pdf = new jsPDF('portrait', 'pt', 'a4');
+
+    for (let i = 0; i < pageRefs.current.length; i++) {
+      const pageRef = pageRefs.current[i];
+      if (pageRef) {
+        const canvas = pageRef.querySelector('canvas');
+        if (canvas) {
+          const dataURL = canvas.toDataURL('image/png', 1.0);
+          const imgProps = pdf.getImageProperties(dataURL);
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+          if (i > 0) {
+            pdf.addPage();
+          }
+          pdf.addImage(dataURL, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        }
+      }
+    }
+
+    pdf.save('documento.pdf');
+  };
+
   return (
     <div className={styles.documentEditorContainer}>
       <div className={styles.mainContent}>
@@ -498,6 +535,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
             {pages.map((pageData, index) => (
               <div key={pageData.id} className={styles.pageWrapper}>
                 <Page
+                  ref={el => { pageRefs.current[index] = el; }}
                   pageId={pageData.id}
                   width={A4_WIDTH}
                   height={A4_HEIGHT}
@@ -525,9 +563,6 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
               </div>
             ))}
           </div>
-          <button onClick={addPage} className={styles.addPageButton}>
-            Adicionar Página
-          </button>
         </div>
         <div className={styles.rightPanel}>
           <TextList
@@ -543,6 +578,10 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({ documentId }) => {
             selectedElement={selectedElement}
             setSelectedElement={setSelectedElement}
           />
+
+          <button onClick={downloadPdf} className={styles.addPageButton}>
+            Baixar PDF
+          </button>
         </div>
       </div>
     </div>

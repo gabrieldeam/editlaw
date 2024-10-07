@@ -30,5 +30,7 @@
 @media (max-width: 768px) {
   .pageContainer {
     transform: scale(0.5);
+    margin-bottom: -200px;
+    margin-top: -200px;
   }
 }

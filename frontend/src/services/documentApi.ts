@@ -4,7 +4,7 @@ import api from './api';
 
 
 export interface Document {
-  id?: string;
+  id: string;
   title: string;
   preco: number;
   precoDesconto?: number;
@@ -145,3 +145,19 @@ export const getDocumentsByCategory = async (categoryId: string, page = 1, size 
 };
 
 
+// Nova função para pesquisar documentos pelo nome e, opcionalmente, pelo ID da categoria
+export const searchDocuments = async (name: string, categoryId?: string, page = 1, size = 10): Promise<PaginatedDocumentsResponse> => {
+  try {
+    const params: any = { name, page, size }; // Parâmetros obrigatórios e opcionais
+
+    if (categoryId) {
+      params.categoryId = categoryId; // Adiciona o filtro por categoria se presente
+    }
+
+    const response = await api.get<PaginatedDocumentsResponse>('/documents/search', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar documentos:', error);
+    throw error;
+  }
+};

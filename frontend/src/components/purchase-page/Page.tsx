@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import {
   Stage,
   Layer,
@@ -19,6 +19,7 @@ import jsPDF from 'jspdf';
 import styles from './Page.module.css'; 
 import { v4 as uuidv4 } from 'uuid';
 
+// Interfaces
 export interface PageProps {
   pageId: string;
   width: number;
@@ -53,7 +54,7 @@ export interface ElementType {
   highlightColor?: string;
 }
 
-const Page: React.FC<PageProps> = ({
+const Page = forwardRef<HTMLDivElement, PageProps>(({
   pageId,
   width,
   height,
@@ -61,7 +62,7 @@ const Page: React.FC<PageProps> = ({
   onElementsChange,
   selectedElement,
   setSelectedElement,
-}) => {
+}, ref) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingElement, setEditingElement] = useState<ElementType | null>(null);
   const [textareaPosition, setTextareaPosition] = useState<{ x: number; y: number }>({
@@ -269,27 +270,7 @@ const Page: React.FC<PageProps> = ({
     }
   };
 
-  useEffect(() => {
-    const handleGeneratePDF = () => {
-      const pdf = new jsPDF('portrait', 'pt', 'a4');
-      const stage = stageRef.current;
-      if (stage) {
-        const dataURL = stage.toDataURL({ pixelRatio: 2 });
-        pdf.addImage(
-          dataURL,
-          'PNG',
-          0,
-          0,
-          pdf.internal.pageSize.getWidth(),
-          pdf.internal.pageSize.getHeight()
-        );
-        pdf.save('documento.pdf');
-      }
-    };
-
-    window.addEventListener('generate-pdf', handleGeneratePDF as EventListener);
-    return () => window.removeEventListener('generate-pdf', handleGeneratePDF as EventListener);
-  }, []);
+  // Removido o listener de PDF, pois agora o download é gerenciado pelo DocumentEditor
 
   const TextElement: React.FC<{ el: ElementType }> = ({ el }) => {
     const fontStyle = `${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim();
@@ -559,7 +540,7 @@ const Page: React.FC<PageProps> = ({
       className={styles.pageContainer} // Atualizado para usar CSS Modules
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      ref={containerRef}
+      ref={ref} // Atribui o ref recebido aqui
     >
       <Stage
         width={width}
@@ -643,6 +624,8 @@ const Page: React.FC<PageProps> = ({
       )}
     </div>
   );
-};
+});
+
+Page.displayName = 'Page'; // Opcional: ajuda no debugging
 
 export default Page;

@@ -20,6 +20,16 @@ export const getPagesByDocumentId = async (documentId: string): Promise<Page[]> 
   }
 };
 
+// Obter todas as páginas pelo ID do documento comprado (purchasedDocumentId)
+export const getPagesByPurchasedDocumentId = async (purchasedDocumentId: string): Promise<Page[]> => {
+  try {
+    const response = await api.get<Page[]>(`/pages/purchasedDocument/${purchasedDocumentId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error('Erro ao buscar páginas pelo purchasedDocumentId');
+  }
+};
+
 // Criar uma nova página
 interface CreatePageData {
   documentId: string;

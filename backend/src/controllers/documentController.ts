@@ -313,3 +313,63 @@ export const getDocumentsWithoutPages = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao buscar documentos sem páginas', error: error instanceof Error ? error.message : 'Erro desconhecido' });
   }
 };
+
+// Nova função para pesquisar documentos pelo nome e opcionalmente filtrar por categoryId
+export const searchDocuments = async (req: Request, res: Response) => {
+  const { name, categoryId, page = 1, size = 10 } = req.query;
+
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(size as string, 10);
+
+  if (!name) {
+    return res.status(400).json({ message: 'O parâmetro "name" é obrigatório para a pesquisa.' });
+  }
+
+  try {
+    // Construir o objeto de filtragem
+    const filters: any = {
+      title: {
+        contains: name as string,
+        mode: 'insensitive', // Pesquisa case-insensitive
+      },
+    };
+
+    if (categoryId) {
+      // Verificar se a categoria existe
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: categoryId as string },
+      });
+
+      if (!categoryExists) {
+        return res.status(400).json({ message: 'Category ID inválido.' });
+      }
+
+      filters.categoryId = categoryId;
+    }
+
+    // Buscar documentos com os filtros aplicados e paginação
+    const documents = await prisma.document.findMany({
+      where: filters,
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+      include: {
+        category: true, // Inclui os dados da categoria
+      },
+    });
+
+    const totalDocuments = await prisma.document.count({
+      where: filters,
+    });
+    const totalPages = Math.ceil(totalDocuments / pageSize);
+
+    res.status(200).json({
+      documents,
+      totalPages,
+      currentPage: pageNumber,
+      totalDocuments,
+    });
+  } catch (error) {
+    console.error('Erro ao pesquisar documentos:', error instanceof Error ? error.message : error);
+    res.status(500).json({ message: 'Erro ao pesquisar documentos', error: error instanceof Error ? error.message : 'Erro desconhecido' });
+  }
+};

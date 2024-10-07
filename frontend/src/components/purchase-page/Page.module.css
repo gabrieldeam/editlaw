@@ -1,8 +1,6 @@
 .pageContainer {
   border: 1px solid #ddd;
-  margin-bottom: 20px;
   position: relative;
-  margin-top: 80px;
 }
 
 .colorInput {
@@ -18,7 +16,6 @@
 
 .textEditTextarea {
   background: white;
-  border: 1px solid #ccc;
   outline: none;
   resize: none;
   overflow: hidden;
@@ -28,4 +25,12 @@
   position: absolute;
   font-family: Arial, sans-serif;
   z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    transform: scale(0.5);
+    margin-bottom: -200px;
+    margin-top: -180px;
+  }
 }

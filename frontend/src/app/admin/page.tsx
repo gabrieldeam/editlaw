@@ -16,10 +16,13 @@ const AdminPage: React.FC = () => {
           <button className={styles.button}>Gerenciar Categorias</button>
         </Link>
         <Link href="/admin/documents">
-          <button className={styles.button}>Documentos</button>
+          <button className={styles.button}>Criar Documentos</button>
         </Link>
         <Link href="/admin/coupons">
-          <button className={styles.button}>Coupons</button>
+          <button className={styles.button}>Criar Coupons</button>
+        </Link>
+        <Link href="/admin/packages">
+          <button className={styles.button}>Criar Pacotes</button>
         </Link>
       </div>
     </div>

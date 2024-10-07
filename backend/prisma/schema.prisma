@@ -104,6 +104,8 @@ model Page {
   id         String      @id @default(uuid())
   document   Document    @relation(fields: [documentId], references: [id])
   documentId String
+  purchasedDocument   PurchasedDocument? @relation(fields: [purchasedDocumentId], references: [id])
+  purchasedDocumentId String?
   pageNumber Int 
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -155,5 +157,16 @@ model PurchasedDocument {
   documentId     String
   exclusionDate  DateTime?
   purchaseDate    DateTime   @default(now())
+  pages         Page[]
+}
 
+model Package {
+  id            String      @id @default(uuid())
+  title         String
+  preco         Float
+  precoDesconto Float?
+  descricao     String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt  
+  documentIds   String[]    
 }

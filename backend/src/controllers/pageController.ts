@@ -32,6 +32,34 @@ export const getPagesByDocumentId = async (req: Request, res: Response) => {
   }
 };
 
+// Obter todas as páginas pelo ID do documento comprado (purchasedDocumentId)
+export const getPagesByPurchasedDocumentId = async (req: Request, res: Response) => {
+  const { purchasedDocumentId } = req.params;
+
+  try {
+    const pages = await prisma.page.findMany({
+      where: { purchasedDocumentId },
+      orderBy: {
+        pageNumber: 'asc', // Ordena por número da página
+      },
+      include: {
+        elements: true, // Inclui os elementos da página, se necessário
+      },
+    });
+
+    if (pages.length === 0) {
+      return res.status(404).json({ message: 'Nenhuma página encontrada para o documento comprado especificado' });
+    }
+
+    res.status(200).json(pages);
+  } catch (error) {
+    console.error('Erro ao buscar páginas pelo purchasedDocumentId:', error instanceof Error ? error.message : error);
+    res.status(500).json({
+      message: 'Erro ao buscar páginas pelo purchasedDocumentId',
+      error: error instanceof Error ? error.message : 'Erro desconhecido',
+    });
+  }
+};
 
 // Criar uma nova página
 export const createPage = async (req: Request, res: Response) => {

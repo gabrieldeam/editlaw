@@ -1,33 +1,110 @@
-.searchPage {
+.container {
     padding: 70px;
-}
-
-.resultsList {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.resultItem {
+    margin-top: 120px;
+  }
+  
+  .header {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 15px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-}
-
-.resultImage {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.searchPage h2 {  
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  
+  .searchTitle {
+    font-size: 28px;
     margin: 0;
-}
-
-.searchPage p {
-    color: #6b6b6b;
-}
+  }
+  
+  .checkIcon {
+    width: 82px;
+    height: 62.68px;
+    margin-top: -40px;
+  }
+  
+  .documentList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+  }
+  
+  .documentCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #D9D9D9;
+    padding: 15px;
+    border-radius: 50px;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .documentImage {
+    width: 200px;
+    height: 286.75px;
+    object-fit: cover;
+    margin-right: 25px;
+    z-index: 1;
+    margin-left: -20px;
+    margin-top: -16px;
+  }
+  
+  .documentInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .documentTitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+  
+  .documentPrice {
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+  
+  .precoDesconto {
+    color: #000000;
+    font-weight: bold;
+  }
+  
+  .precoOriginal {
+    text-decoration: line-through;
+    color: #989898;
+    margin-left: 10px;
+  }
+  
+  .documentAuthor {
+    font-size: 20px;
+    color: #989898;
+    margin-bottom: 20px;
+  }
+  
+  .buyButton {
+    background-color: #45C907;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+  .cartButton {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 1024px) {
+    .container {
+      padding: 20px;
+    }
+  }
+  

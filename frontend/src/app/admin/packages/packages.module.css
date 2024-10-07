@@ -1,3 +1,5 @@
+/* src/app/admin/packages/packages.module.css */
+
 .container {
     padding: 70px;
     margin-top: -40px;
@@ -25,7 +27,7 @@
     border-radius: 5px;
   }
   
-  .couponList {
+  .packageList {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -33,26 +35,26 @@
     overflow: hidden;
   }
   
-  .couponHeader, .couponItem {
+  .packageHeader, .packageItem {
     display: flex;
     padding: 15px;
     font-weight: bold;
   }
   
-  .couponHeader {
+  .packageHeader {
     background-color: #c0c0c0;
   }
   
-  .couponItem {
+  .packageItem {
     font-weight: normal;
   }
   
-  .couponHeader span, .couponItem span {
+  .packageHeader span, .packageItem span {
     flex: 1;
     text-align: center;
   }
   
-  .couponItem:hover {
+  .packageItem:hover {
     background-color: #e0e0e0;
     cursor: pointer;
   }
@@ -72,6 +74,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    margin-right: 5px;
     transition: background-color 0.3s ease;
   }
   
@@ -79,24 +82,49 @@
     background-color: #005bb5;
   }
   
+  .deleteButton {
+    padding: 5px 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .deleteButton:hover {
+    background-color: #da190b;
+  }
+  
   .pagination {
+    margin-top: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 20px;
   }
   
   .pagination button {
     padding: 10px 20px;
     margin: 0 10px;
-    border: none;
     background-color: #0070f3;
     color: white;
-    border-radius: 5px;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
   }
   
-  .pagination span {
-    font-size: 16px;
+  .pagination button:disabled {
+    background-color: #a0a0a0;
+    cursor: not-allowed;
+  }
+  
+  .pagination button:hover:not(:disabled) {
+    background-color: #005bb5;
+  }
+  
+  .error {
+    color: red;
+    text-align: center;
   }
   

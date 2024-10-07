@@ -138,6 +138,8 @@
     justify-content: center;
     background-color: #000000;
     position: relative;
+    margin-top: 80px;
+    margin-bottom: -60px;
   }
   
   .mobileSearchIcon {
@@ -278,10 +280,6 @@
   }
 
   @media (min-width: 1024px) and (max-width: 1257px) {
-
-    .mobileSearchBar {
-      padding: 11px 20px;
-    }
     
     .cartContainer {
       margin-left: 0px;
@@ -362,7 +360,7 @@
       justify-content: space-between;
       padding: 10px 20px;
       gap: 10px;
-            margin-top: 80px;
+      margin-top: 80px;
       margin-bottom: -60px;
     }
   

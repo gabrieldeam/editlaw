@@ -17,6 +17,7 @@ import elementRoutes from './routes/elementRoutes';
 import couponRoutes from './routes/couponRoutes';
 import processPaymentRoute from './routes/process_payment';
 import purchasedDocumentRoutes from './routes/purchasedDocumentRoutes';
+import packageRoutes from './routes/packageRoutes';
 import { prisma } from './prismaClient';
 import cookieParser from 'cookie-parser';
 
@@ -68,6 +69,7 @@ app.use('/api', couponRoutes);
 app.use('/api', creditCardRoutes);
 app.use('/api', processPaymentRoute);
 app.use('/api', purchasedDocumentRoutes);
+app.use('/api', packageRoutes);
 
 // Testar a Conexão com o Banco de Dados
 async function testDBConnection() {

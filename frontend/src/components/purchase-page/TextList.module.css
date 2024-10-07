@@ -5,7 +5,7 @@
   height: 100%; /* Garante que ocupe todo o espaço disponível */
   box-sizing: border-box;
   overflow-y: auto;
-  margin-top: 110px;
+  margin-top: 60px;
 
 }
 
@@ -32,7 +32,7 @@
 }
 
 .textListItem.selected {
-  border-color: #007bff;
+  border-color: #45C907;
   background-color: #e6f0ff;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .formattingButton.active {
-  background-color: #007bff;
+  background-color: #45C907;
   color: #fff;
   border-radius: 3px;
 }
@@ -117,16 +117,16 @@
 .shapeColorButton {
   padding: 5px 10px;
   cursor: pointer;
-  border: 1px solid #007bff;
+  border: 1px solid #45C907;
   border-radius: 4px;
-  background-color: #007bff;
+  background-color: #45C907;
   color: #fff;
   transition: background-color 0.3s, transform 0.2s;
   font-size: 14px;
 }
 
 .shapeColorButton:hover {
-  background-color: #0056b3;
+  background-color: #45C907;
 }
 
 .shapeColorButton:active {
@@ -152,7 +152,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  border: 2px solid #007bff;
+  border: 2px solid #45C907;
   pointer-events: none;
   border-radius: 6px;
 }
@@ -227,4 +227,12 @@
 
 .uploadButton:hover {
   background-color: #0056b3;
+}
+
+
+@media (max-width: 768px) {
+  .textListContainer {
+    margin-top: 0px;
+  }
+  
 }

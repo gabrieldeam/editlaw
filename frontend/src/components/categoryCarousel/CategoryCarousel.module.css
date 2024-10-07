@@ -1,0 +1,173 @@
+.container {
+    padding: 70px 0px 20px 70px;
+    margin-top: 40px;
+    margin-bottom: 40px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between; /* Distribui os itens igualmente entre as extremidades */
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    margin-right: 70px;
+  }
+
+  .categoryName {
+    font-size: 28px;
+    margin: 0;
+  }
+
+  .checkIcon {
+    width: 82px;
+    height: 62.68px;
+    margin-top: -40px;
+  }
+
+  .viewCategoryButton {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 50px;
+    margin-left: auto; /* Garante que o botão vá para o canto direito */
+  }
+  
+  .documentList {
+    display: flex;
+    flex-wrap: nowrap; /* Impede a quebra de linha */
+    overflow-x: auto; /* Permite a rolagem horizontal */
+    gap: 30px;
+    scroll-behavior: smooth; /* Rolagem suave */
+  
+    /* Esconde a barra de rolagem */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+  }
+  
+  .documentList::-webkit-scrollbar {
+    display: none; /* Chrome, Safari e Opera */
+  }
+  .documentCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #D9D9D9;
+    padding: 15px;
+    border-radius: 50px;
+    min-width: 400px;
+    max-width: 400px;
+  }
+  
+  .documentImage {
+    width: 200px;
+    height: 286.75px;
+    object-fit: cover;
+    margin-right: 25px;
+    z-index: 1;
+    margin-left: -20px;
+    margin-top: -16px;
+  }
+  
+  .documentInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .documentTitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+  
+  .documentPrice {
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+  
+  .precoDesconto {
+    color: #000000;
+    font-weight: bold;
+  }
+  
+  .precoOriginal {
+    text-decoration: line-through;
+    color: #989898;
+    margin-left: 10px;
+  }
+  
+  .documentAuthor {
+    font-size: 20px;
+    color: #989898;
+    margin-bottom: 20px;
+  }
+  
+  .buyButton {
+    background-color: #45C907;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+  .cartButton {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+  
+
+  .scrollButtons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 80px;
+  }
+
+  .scrollButton {
+    position: absolute;
+    margin-top: 50px;
+    transform: translateY(-50%);
+    background-color: #D9D9D9;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .leftButton {
+    margin-right: 50px;
+    border-radius: 50px 0 0 50px;
+  }
+  
+  .rightButton {
+    margin-left: 50px;
+    border-radius: 0 50px 50px 0;
+  }
+  
+  .scrollButton img {
+    width: 30px;
+    height: 30px;
+  }
+
+  @media (max-width: 1024px) {
+    .container {
+        padding: 20px 0px 0px 20px;
+        margin-top: 0;
+    }
+
+    .header {
+        margin-right: 20px;
+      }
+
+}

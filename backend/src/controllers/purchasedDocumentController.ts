@@ -14,21 +14,31 @@ async function duplicateDocumentData(purchaseId: string, documentId: string) {
       include: { elements: true }, // Inclui os elementos associados à página
     });
 
+    console.log(`Páginas encontradas para o documento ${documentId}:`, pages);
+
     for (const page of pages) {
+      // Verifique se o purchaseId é válido no momento da criação da página
+      console.log(`Tentando criar uma nova página com purchaseId: ${purchaseId}`);
+
       // Criar uma nova página associada ao PurchasedDocument (alterando o documentId para o purchasedDocument.id)
       const newPage = await prisma.page.create({
         data: {
-          documentId: purchaseId, // Associa a nova página ao PurchasedDocument
+          documentId: page.documentId, // Mantemos o documentId original para referência
+          purchasedDocumentId: purchaseId, // Associamos ao PurchasedDocument
           pageNumber: page.pageNumber,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
       });
 
+      console.log(`Nova página criada com ID ${newPage.id} para o documento comprado ${purchaseId}`);
+
       // Duplicar os elementos da página original para a nova página
       const elements = page.elements;
+      console.log(`Elementos da página original ${page.id}:`, elements);
+
       for (const element of elements) {
-        await prisma.element.create({
+        const newElement = await prisma.element.create({
           data: {
             pageId: newPage.id, // Associando o elemento à nova página
             type: element.type,
@@ -51,13 +61,26 @@ async function duplicateDocumentData(purchaseId: string, documentId: string) {
             updatedAt: new Date(),
           },
         });
+
+        console.log(`Novo elemento criado com ID ${newElement.id} para a nova página ${newPage.id}`);
       }
     }
   } catch (error) {
-    console.error('Erro ao duplicar dados do documento:', error);
+    if (error instanceof Error) {
+      console.error('Erro ao duplicar dados do documento:', error.message);
+      throw new Error(`Erro ao duplicar documento: ${error.message}`);
+    } else {
+      console.error('Erro desconhecido ao duplicar documento:', error);
+      throw new Error('Erro desconhecido ao duplicar documento.');
+    }
   }
 }
 
+/**
+ * Cria um ou mais documentos comprados para o usuário autenticado
+ * e duplica as páginas e os elementos associados ao documento comprado,
+ * atualizando o documentId para o ID do PurchasedDocument.
+ */
 /**
  * Cria um ou mais documentos comprados para o usuário autenticado
  * e duplica as páginas e os elementos associados ao documento comprado,
@@ -164,7 +187,13 @@ export const getPurchasedDocuments = async (req: Request, res: Response) => {
       purchasedDocuments,
     });
   } catch (error) {
-    console.error('Erro ao pegar os documentos comprados:', error);
-    return res.status(500).json({ error: 'Erro ao pegar os documentos comprados' });
+    // Converta o 'error' para o tipo 'Error'
+    if (error instanceof Error) {
+      console.error('Erro ao pegar os documentos comprados:', error.message);
+      return res.status(500).json({ error: 'Erro ao pegar os documentos comprados' });
+    } else {
+      console.error('Erro desconhecido ao pegar os documentos comprados:', error);
+      return res.status(500).json({ error: 'Erro desconhecido ao pegar os documentos comprados' });
+    }
   }
 };
