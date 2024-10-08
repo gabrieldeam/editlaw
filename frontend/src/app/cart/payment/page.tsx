@@ -12,13 +12,13 @@ import { CreditCard } from '@/types/creditCard';
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
 import { useAuth } from '../../../context/AuthContext';
-import { usePayment } from '../../../context/PaymentContext'; // Importação do contexto de pagamento
+import { usePayment } from '../../../context/PaymentContext';
 
 const PaymentPage: React.FC = () => {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
   const { isAuthenticated, loading, user } = useAuth();
-  const { totalAmount } = usePayment(); // Pega o total com desconto aplicado
+  const { totalAmount } = usePayment();
 
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const [billingInfo, setBillingInfo] = useState({
@@ -57,14 +57,17 @@ const PaymentPage: React.FC = () => {
   // Carregar documentos do carrinho
   useEffect(() => {
     const fetchDocuments = async () => {
-      const docs: DocumentData[] = [];
-
-      for (const itemId of cartItems) {
-        const document = await getDocumentById(itemId);
-        docs.push(document);
+      try {
+        const docs: DocumentData[] = await Promise.all(
+          cartItems
+            .filter(item => item.type === 'document')
+            .map(item => getDocumentById(item.id))
+        );
+        setDocuments(docs);
+      } catch (error) {
+        console.error('Erro ao buscar documentos:', error);
+        setNotification({ message: 'Erro ao carregar documentos. Tente novamente.', type: 'error' });
       }
-
-      setDocuments(docs);
     };
 
     if (cartItems.length > 0) {
@@ -85,6 +88,7 @@ const PaymentPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Erro ao buscar informações de cobrança:', error);
+        setNotification({ message: 'Erro ao carregar informações de cobrança.', type: 'error' });
       } finally {
         setLoadingBillingInfo(false);
       }
@@ -105,6 +109,7 @@ const PaymentPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Erro ao carregar cartões de crédito:', error);
+        setNotification({ message: 'Erro ao carregar cartões de crédito.', type: 'error' });
       }
     };
 
@@ -122,10 +127,12 @@ const PaymentPage: React.FC = () => {
   const handleBillingInfoSave = async () => {
     try {
       await createOrUpdateBillingInfo(billingInfo);
-      alert('Informações de cobrança salvas com sucesso!');
+      setNotification({ message: 'Informações de cobrança salvas com sucesso!', type: 'success' });
+      setHasBillingData(true);
+      setIsBillingInfoVisible(false);
     } catch (error) {
       console.error('Erro ao salvar informações de cobrança:', error);
-      alert('Erro ao salvar informações de cobrança. Tente novamente.');
+      setNotification({ message: 'Erro ao salvar informações de cobrança. Tente novamente.', type: 'error' });
     }
   };
 
@@ -148,7 +155,6 @@ const PaymentPage: React.FC = () => {
           name: newCardData.name,
           cardNumber: newCardData.cardNumber,
           expirationDate: newCardData.expirationDate,
-          // Não envie o CVV ao backend
         });
 
         const cards = await getCreditCards();
@@ -177,9 +183,9 @@ const PaymentPage: React.FC = () => {
       if (isAddCardVisible) {
         await handleAddCard();
       }
-  
+
       const selectedCard = creditCards.find((card) => card.id === selectedCardId);
-  
+
       if (!selectedCard) {
         setNotification({ message: 'Selecione um cartão para realizar o pagamento.', type: 'error' });
         return;
@@ -190,8 +196,9 @@ const PaymentPage: React.FC = () => {
         return;
       }
 
-      // Enviar os itens do carrinho para o backend
-      const documentIds = cartItems.map((item) => item);
+      // Filtra os ids para garantir que não haja undefined
+      const documentIds = documents.map(doc => doc.id).filter(id => id !== undefined) as string[];
+
       const purchasedDocuments = await createPurchasedDocuments({ documentIds });
 
       // Sucesso: limpar o carrinho
@@ -212,16 +219,13 @@ const PaymentPage: React.FC = () => {
   };
 
   const handlePayWithBoleto = () => {
-    // Implemente a lógica para pagamento com boleto
     alert('Pagamento com boleto não implementado.');
   };
 
   const handlePayWithPix = () => {
-    // Implemente a lógica para pagamento com pix
     alert('Pagamento com pix não implementado.');
   };
 
-  // Exibir um indicador de carregamento enquanto verifica autenticação
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -332,7 +336,6 @@ const PaymentPage: React.FC = () => {
             )}
           </div>
 
-          {/* Cartões de crédito */}
           <div className={styles.creditCardBox}>
             <div className={styles.creditCardHeader}>
               <h2 className={styles.creditCardTitle}>Formas de pagamento</h2>
@@ -360,11 +363,11 @@ const PaymentPage: React.FC = () => {
               <button className={styles.addButton} onClick={() => setIsAddCardVisible(true)}>
                 Adicionar cartão
               </button>
-              <button className={styles.payWithButton} onClick={handlePayWithBoleto}>
-                Pagar com boleto
+              <button className={styles.payWithButton} onClick={handlePayWithBoleto} disabled>
+                Pagar com boleto (Em breve)
               </button>
-              <button className={styles.payWithButton} onClick={handlePayWithPix}>
-                Pagar com pix
+              <button className={styles.payWithButton} onClick={handlePayWithPix} disabled>
+                Pagar com pix (Em breve)
               </button>
             </div>
 
@@ -418,7 +421,7 @@ const PaymentPage: React.FC = () => {
 
             <div className={styles.subtotalRow}>
               <span>Total a pagar:</span>
-              <span>R$ {totalAmount.toFixed(2)}</span> {/* Usando totalAmount aqui */}
+              <span>R$ {totalAmount.toFixed(2)}</span>
             </div>
 
             <button
@@ -434,7 +437,6 @@ const PaymentPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Pagamento seguro e ícones das formas de pagamento */}
           <div className={styles.paymentInfo}>
             <div className={styles.paymentTextContainer}>
               <img src="/icon/assurance.svg" alt="Pagamento seguro" className={styles.assuranceIcon} />
@@ -479,7 +481,7 @@ const PaymentPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Exibir notificação se existir */}
+
       {notification && (
         <Notification message={notification.message} type={notification.type} />
       )}

@@ -5,8 +5,9 @@
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 30px;
+    gap: 70px;
     padding: 70px;
+    box-sizing: border-box; /* Garante que o padding seja incluído nas dimensões */
 }
 
 .header {
@@ -15,18 +16,19 @@
     justify-content: center;
     gap: 10px;
     margin-top: 80px;
-  }
+    margin-bottom: 20px;
+}
 
-  .categoryName {
+.categoryName {
     font-size: 28px;
     margin: 0;
-  }
+}
 
-  .checkIcon {
+.checkIcon {
     width: 82px;
     height: 62.68px;
     margin-top: -40px;
-  }
+}
 
 .packageCard {
     background-color: #d9d9d9;
@@ -35,9 +37,10 @@
     max-width: 507px;
     min-width: 307px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     cursor: pointer;
+    box-sizing: border-box; /* Inclui padding no tamanho total */
 }
 
 .packageInfo {
@@ -51,6 +54,7 @@
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    margin-top: 90px;
 }
 
 .packageDocInfo {
@@ -136,6 +140,15 @@
     position: relative;
 }
 
+.packageContainer {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start; /* Alinha os pacotes no início */
+    gap: 20px; /* Espaço entre o card e a descrição */
+    box-sizing: border-box; /* Inclui padding no tamanho total */
+}
+
 .expandedDescription {
     background-color: #D9D9D9;
     padding: 20px;
@@ -144,25 +157,116 @@
     color: #333;
     text-align: left;
     display: flex;
-    justify-content: center;
-    flex: 1; /* Expande para ocupar espaço */
-    height: 100%;
+    flex-direction: column;
+    justify-content: flex-start; /* Alinhamento superior */
+    align-items: center;
+    flex: 1;
+    max-height: 500px; /* Definindo um tamanho máximo para evitar encolhimento */
+    overflow: hidden; /* Esconder o conteúdo que excede o contêiner */
+    position: relative;
+    box-sizing: border-box; /* Inclui padding no tamanho total */
+    width: 100%; /* Garante que ocupe a largura disponível */
 }
 
-.packageContainer {
+.carousel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%; /* Garante que o carrossel ocupe toda a largura */
+    overflow-x: auto; /* Permite rolagem horizontal suave */
+    scroll-snap-type: x mandatory;
+    box-sizing: border-box; /* Inclui padding no tamanho total */
+}
+
+.arrow {
+    cursor: pointer;
+    min-width: 30px;
+    min-height: 30px;
+}
+
+.carouselContent {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto; /* Habilita a rolagem horizontal */
+    scroll-snap-type: x mandatory; /* Alinha suavemente os elementos ao rolar */
+    padding-bottom: 10px; /* Adiciona um pequeno padding para espaçamento */
+    box-sizing: border-box; /* Inclui padding no tamanho total */
+    width: 100%; /* Garante que não ultrapasse o contêiner */
+    flex-wrap: nowrap; /* Evita que os itens quebrem para a próxima linha */
+    -ms-overflow-style: none; /* IE e Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.documentCard {
     display: flex;
     flex-direction: row;
-    align-items: flex-start; /* Alinha os pacotes no início */
-    gap: 20px; /* Espaço entre o card e a descrição */
+    align-items: center;
+    gap: 15px;
+    max-width: 250px; /* Reduzido de 250px para 200px */
+    scroll-snap-align: start;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: white; /* Adicionado para melhor visualização */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Adicionado para destaque */
+    box-sizing: border-box; /* Inclui padding no tamanho total */
+    flex-shrink: 0; /* Impede que os cards encolham */
+}
+
+.documentImage {
+    width: 105px;
+    height: 150.54px;
+    object-fit: cover;
+    border-radius: 9px;
+}
+
+.documentInfo {
+    text-align: left;
+    flex: 1;
+}
+
+.documentSpace {
+    margin-bottom: 10px;
+}
+
+
+
+
+.imagesOverlay {
+    position: absolute;
+    top: -50px; /* Ajuste conforme necessário para posicionar corretamente */
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    z-index: 2; /* Garantir que fiquem acima do conteúdo principal */
+}
+
+.overlayImage {
+    width: 94px; /* Ajuste o tamanho conforme desejado */
+    height: 134.77px; /* Ajuste o tamanho conforme desejado */
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.overlayImage:hover {
+    transform: scale(1.05);
 }
 
 @media (max-width: 1024px) {
     .container {
         padding: 20px;
-        gap: 20px;
+        gap: 80px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        box-sizing: border-box; /* Garante que o padding seja incluído nas dimensões */
+    }
+
+    .header {
+        margin-bottom: 70px;
     }
 
     .packageCard {
@@ -171,12 +275,41 @@
     }
 
     .expandedDescription {
-        width: 100%; /* No mobile, a descrição fica abaixo e ocupa a largura total */
-        flex-direction: column;
-        justify-content: flex-start;
+        width: 100%;
+        box-sizing: border-box; /* Inclui padding no tamanho total */
     }
 
     .packageContainer {
-        flex-direction: column; /* Altera para coluna no mobile */
+        flex-direction: column;
+    }
+
+    .arrow {
+        display: none;
+    }
+
+    .documentCard {
+        width: 100%;
+    }
+
+    .carousel {
+        display: block;
+        max-width: 350px;
+        box-sizing: border-box; /* Inclui padding no tamanho total */
+    }
+
+    .carouselContent {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box; /* Inclui padding no tamanho total */
+    }
+
+    .documentCard {
+        scroll-snap-align: start;
+    }
+
+    .documentSpace {
+        margin-bottom: 0;
+        margin-top: 10px;
     }
 }

@@ -30,6 +30,12 @@
   width: 50%; /* Diminui um pouco para dar espaço ao leftSide */
 }
 
+
+
+.sectionTitle {
+  margin-bottom: 30px;
+}
+
 .documentCard {
   display: flex;
   align-items: center;
@@ -62,6 +68,62 @@
   margin-bottom: 10px;
   font-weight: bold;
 }
+
+
+
+
+
+
+
+
+
+.packageCard {
+  display: flex;
+  align-items: center;
+  background-color: #E2E2E2;
+  padding: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  border-radius: 9px;
+}
+
+.packageImage {
+  width: 100px;
+  height: 140px;
+  object-fit: cover;
+  margin-right: 20px;
+}
+
+.packageInfo {
+  flex: 1;
+}
+
+.packageTitle {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.packagePrice {
+  font-size: 26px;
+  color: #000;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.packageDescription {
+  font-size: 18px;
+  color: #666;
+  font-weight: bold;
+}
+
+
+
+
+
+
+
+
+
 
 .access {
   font-size: 18px;

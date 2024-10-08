@@ -77,7 +77,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categoryId }) => {
 
   const handleAddToCart = (documentId?: string) => {
     if (documentId) {
-      addToCart(documentId);
+      addToCart({ type: 'document', id: documentId });
     } else {
       console.error('Document ID is undefined');
     }
@@ -85,7 +85,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categoryId }) => {
 
   const handleBuyNow = (documentId?: string) => {
     if (documentId) {
-      addToCart(documentId);
+      addToCart({ type: 'document', id: documentId });
       router.push('/cart');
     } else {
       console.error('Document ID is undefined');
@@ -167,7 +167,11 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categoryId }) => {
                   className={styles.buyButton}
                   onClick={(e) => {
                     e.stopPropagation(); // Para evitar que o clique no botão também acione o clique do documento
-                    handleBuyNow(document.id);
+                    if (document.id) { // Verificação adicionada
+                      handleBuyNow(document.id);
+                    } else {
+                      console.error('Document ID is undefined.');
+                    }
                   }}
                 >
                   Comprar
@@ -177,7 +181,11 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categoryId }) => {
                   className={styles.cartButton}
                   onClick={(e) => {
                     e.stopPropagation(); // Para evitar que o clique no botão também acione o clique do documento
-                    handleAddToCart(document.id);
+                    if (document.id) { // Verificação adicionada
+                      handleAddToCart(document.id);
+                    } else {
+                      console.error('Document ID is undefined.');
+                    }
                   }}
                 >
                   Adicionar ao Carrinho

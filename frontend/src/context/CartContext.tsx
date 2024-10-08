@@ -1,48 +1,67 @@
+// src/context/CartContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+interface CartItem {
+  type: 'document' | 'package';
+  id: string;
+}
+
 interface CartContextType {
-  cartItems: string[];
-  addToCart: (itemId: string) => void;
-  removeFromCart: (itemId: string) => void;
+  cartItems: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (item: CartItem) => void;
   clearCart: () => void;
-  setCartItems: (items: string[]) => void;
+  setCartItems: (items: CartItem[]) => void;
   cartCount: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [cartItems, setCartItemsState] = useState<string[]>([]);
+  const [cartItems, setCartItemsState] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    // Carrega os itens do carrinho do localStorage ao montar o contexto
-    const storedCartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-    if (Array.isArray(storedCartItems)) {
-      setCartItemsState(storedCartItems);
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      try {
+        const parsedCart = JSON.parse(storedCart);
+        if (parsedCart.length > 0 && typeof parsedCart[0] === 'string') {
+          // Formato antigo: string[]
+          const upgradedCart: CartItem[] = parsedCart.map((id: string) => ({ type: 'document', id }));
+          setCartItemsState(upgradedCart);
+          localStorage.setItem('cart', JSON.stringify(upgradedCart));
+        } else {
+          setCartItemsState(parsedCart as CartItem[]);
+        }
+      } catch (e) {
+        console.error('Erro ao carregar o carrinho do localStorage:', e);
+        setCartItemsState([]);
+      }
     }
   }, []);
 
   useEffect(() => {
-    // Atualiza o localStorage sempre que cartItems mudar
-    if (cartItems.length > 0) {
-      localStorage.setItem('cart', JSON.stringify(cartItems));
-    }
+    localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (itemId: string) => {
-    setCartItemsState((prevItems) => [...prevItems, itemId]);
+  const addToCart = (item: CartItem) => {
+    setCartItemsState((prevItems) => [...prevItems, item]);
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCartItemsState((prevItems) => prevItems.filter((id) => id !== itemId));
+  const removeFromCart = (item: CartItem) => {
+    setCartItemsState((prevItems) =>
+      prevItems.filter(
+        (cartItem) => !(cartItem.type === item.type && cartItem.id === item.id)
+      )
+    );
   };
 
   const clearCart = () => {
     setCartItemsState([]);
-    localStorage.removeItem('cart'); // Limpa o localStorage quando o carrinho é esvaziado
+    localStorage.removeItem('cart');
   };
 
-  const setCartItems = (items: string[]) => {
+  const setCartItems = (items: CartItem[]) => {
     setCartItemsState(items);
   };
 

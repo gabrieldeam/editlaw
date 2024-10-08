@@ -1,7 +1,10 @@
+// src/app/cart/page.tsx
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
+import { getPackageById, Package } from '@/services/packageService';
 import { getActiveCouponByName } from '@/services/couponService';
 import { useCart } from '../../context/CartContext';
 import { useRouter } from 'next/navigation'; 
@@ -9,11 +12,17 @@ import { usePayment } from '../../context/PaymentContext';
 import Notification from '../../components/notification/Notification';
 import styles from './cart.module.css';
 
+interface CartItem {
+  type: 'document' | 'package';
+  id: string;
+}
+
 const CartPage: React.FC = () => {
   const { cartItems, removeFromCart } = useCart();
   const { setTotalAmount } = usePayment();
   const router = useRouter();
   const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [promoCode, setPromoCode] = useState<string>(''); // Cupom promocional
   const [discount, setDiscount] = useState<number>(0); // Valor do desconto
@@ -29,25 +38,42 @@ const CartPage: React.FC = () => {
 
   // Atualizar subtotal quando os itens do carrinho mudam
   useEffect(() => {
-    const fetchDocuments = async () => {
-      const docs: DocumentData[] = [];
+    const fetchCartItems = async () => {
+      const fetchedDocuments: DocumentData[] = [];
+      const fetchedPackages: Package[] = [];
       let total = 0;
 
-      for (const itemId of cartItems) {
-        const document = await getDocumentById(itemId);
-        docs.push(document);
-        total += document.precoDesconto ? document.precoDesconto : document.preco;
+      for (const item of cartItems) {
+        if (item.type === 'document') {
+          try {
+            const document = await getDocumentById(item.id);
+            fetchedDocuments.push(document);
+            total += document.precoDesconto ? document.precoDesconto : document.preco;
+          } catch (docError) {
+            console.error(`Erro ao buscar documento com ID ${item.id}:`, docError);
+          }
+        } else if (item.type === 'package') {
+          try {
+            const pkg = await getPackageById(item.id);
+            fetchedPackages.push(pkg);
+            total += pkg.precoDesconto ? pkg.precoDesconto : pkg.preco;
+          } catch (pkgError) {
+            console.error(`Erro ao buscar pacote com ID ${item.id}:`, pkgError);
+          }
+        }
       }
 
-      setDocuments(docs);
+      setDocuments(fetchedDocuments);
+      setPackages(fetchedPackages);
       setSubtotal(total);
     };
 
     if (cartItems.length > 0) {
-      fetchDocuments();
+      fetchCartItems();
     } else {
-      setDocuments([]); // Limpa os documentos quando o carrinho está vazio
-      setSubtotal(0);    // Reseta o subtotal
+      setDocuments([]);
+      setPackages([]);
+      setSubtotal(0);
     }
   }, [cartItems]);
 
@@ -77,11 +103,11 @@ const CartPage: React.FC = () => {
     }
   };
 
-  const handleRemoveItem = (documentId?: string) => {
-    if (documentId) {
-      removeFromCart(documentId);
+  const handleRemoveItem = (item: CartItem) => {
+    if (item) {
+      removeFromCart(item);
     } else {
-      console.error('ID do documento é indefinido.');
+      console.error('Item para remover é indefinido.');
     }
   };
 
@@ -122,7 +148,7 @@ const CartPage: React.FC = () => {
   };
 
   const handlePayment = () => {
-    if (subtotal > 0 && documents.length > 0) {
+    if (subtotal > 0 && (documents.length > 0 || packages.length > 0)) {
       const totalAmount = subtotal - discount; // Calcula o valor total com o desconto
       setTotalAmount(totalAmount); // Armazena o total no contexto
       router.push('/cart/payment'); // Redireciona para a página de pagamento
@@ -130,7 +156,7 @@ const CartPage: React.FC = () => {
       setNotification({ message: 'O carrinho está vazio ou o total é inválido.', type: 'error' });
     }
   };  
-
+ 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Carrinho</h1>
@@ -142,30 +168,72 @@ const CartPage: React.FC = () => {
 
       <div className={styles.contentContainer}>
         <div className={styles.leftSide}>        
-          {documents.length > 0 ? (
-            documents.map((document) => (
-              <div key={document.id} className={styles.documentCard}>
-                <img
-                  className={styles.documentImage}
-                  src={`${process.env.NEXT_PUBLIC_API_URL_IMAGE}${document.image}`}
-                  alt={document.title}
-                />
-                <div className={styles.documentInfo}>
-                  <h2 className={styles.documentTitle}>{document.title}</h2>
-                  <p className={styles.documentPrice}>
-                    {document.precoDesconto ? `R$ ${document.precoDesconto}` : `R$ ${document.preco}`}
-                  </p>
-                  <p className={styles.access}>Acesso limitado</p>
+          {documents.length > 0 && (
+            <div>
+              <h2 className={styles.sectionTitle}>Documentos</h2>
+              {documents.map((document) => (
+                <div key={document.id} className={styles.documentCard}>
+                  <img
+                    className={styles.documentImage}
+                    src={`${process.env.NEXT_PUBLIC_API_URL_IMAGE}${document.image}`}
+                    alt={document.title}
+                  />
+                  <div className={styles.documentInfo}>
+                    <h2 className={styles.documentTitle}>{document.title}</h2>
+                    <p className={styles.documentPrice}>
+                      {document.precoDesconto ? `R$ ${document.precoDesconto}` : `R$ ${document.preco}`}
+                    </p>
+                    <p className={styles.access}>Acesso limitado</p>
+                  </div>
+                  <img
+                    src="/icon/trash.svg"
+                    alt="Remover"
+                    className={styles.trashIcon}
+                    onClick={() => {
+                      if (document.id) { // Adiciona verificação
+                        handleRemoveItem({ type: 'document', id: document.id });
+                      } else {
+                        console.error('Document ID is undefined.');
+                      }
+                    }}
+                  />
                 </div>
-                <img
-                  src="/icon/trash.svg"
-                  alt="Remover"
-                  className={styles.trashIcon}
-                  onClick={() => handleRemoveItem(document.id)}
-                />
-              </div>
-            ))
-          ) : (
+              ))}
+            </div>
+          )}
+
+          {packages.length > 0 && (
+            <div>
+              <h2 className={styles.sectionTitle}>Pacotes</h2>
+              {packages.map((pkg) => (
+                <div key={pkg.id} className={styles.packageCard}>
+                  <div className={styles.packageInfo}>
+                    <h2 className={styles.packageTitle}>{pkg.title}</h2>
+                    <p className={styles.packagePrice}>
+                      {pkg.precoDesconto ? `R$ ${pkg.precoDesconto}` : `R$ ${pkg.preco}`}
+                    </p>
+                    <p className={styles.packageDescription}>
+                      Pacote com {pkg.documentIds.length} documento{pkg.documentIds.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <img
+                    src="/icon/trash.svg"
+                    alt="Remover"
+                    className={styles.trashIcon}
+                    onClick={() => {
+                      if (pkg.id) { // Adiciona verificação
+                        handleRemoveItem({ type: 'package', id: pkg.id });
+                      } else {
+                        console.error('Package ID is undefined.');
+                      }
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(documents.length === 0 && packages.length === 0) && (
             <p className={styles.emptyMessage}>O carrinho está vazio.</p>
           )}
         </div>
@@ -173,7 +241,7 @@ const CartPage: React.FC = () => {
         <div className={styles.rightSide}>
           <div className={styles.summaryCard}>
             <h2 className={styles.summaryTitle}>Resumo do pedido</h2>
-            <p className={styles.summaryItems}>Número de itens: {documents.length}</p>
+            <p className={styles.summaryItems}>Número de itens: {cartItems.length}</p>
             <hr className={styles.separator} />
 
             <div className={styles.subtotalRow}>
@@ -213,7 +281,7 @@ const CartPage: React.FC = () => {
             <button 
               className={styles.payButton} 
               onClick={handlePayment} 
-              disabled={subtotal === 0 || documents.length === 0}
+              disabled={subtotal === 0 || (documents.length === 0 && packages.length === 0)}
             >
               Pronto para pagar
             </button>

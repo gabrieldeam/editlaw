@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getDocumentsByCategory, DocumentData } from '@/services/documentApi'; // Interface renomeada
+import { getDocumentsByCategory, DocumentData } from '@/services/documentApi';
 import styles from './category.module.css';
 import { useCart } from '../../../context/CartContext';
 
@@ -12,56 +12,49 @@ const CategoryPage: React.FC = () => {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<DocumentData[]>([]);
   const router = useRouter();
-  const pathname = usePathname(); // Usado para pegar o nome da categoria da URL
-  const { addToCart } = useCart(); // Função para adicionar ao carrinho
+  const pathname = usePathname(); // Used to get the category name from the URL
+  const { addToCart } = useCart(); // Function to add to cart
 
-  // Pegando o nome da categoria da URL e decodificando
+  // Getting the category name from the URL and decoding it
   const categoryName = decodeURIComponent(pathname.split('/').pop() || 'Categoria');
 
   useEffect(() => {
-    const storedCategoryId = localStorage.getItem('selectedCategoryId');
-    if (storedCategoryId) {
-      setCategoryId(storedCategoryId);
-      fetchDocuments(storedCategoryId);
-    } else {
-      router.push('/');
-    }
-  }, [router]);
+    const fetchCategoryAndDocuments = async () => {
+      try {
+        // Fetch the category by name
+        const categoryResponse = await fetch(`/api/categories?name=${categoryName}`);
+        if (!categoryResponse.ok) {
+          throw new Error('Categoria não encontrada');
+        }
+        const categoryData = await categoryResponse.json();
+        const fetchedCategoryId = categoryData.id;
+        setCategoryId(fetchedCategoryId);
 
-  const fetchDocuments = async (categoryId: string) => {
-    try {
-      const { documents } = await getDocumentsByCategory(categoryId);
-      setDocuments(documents);
-    } catch (error) {
-      console.error('Erro ao buscar documentos:', error);
-    }
+        // Fetch documents by category
+        const { documents } = await getDocumentsByCategory(fetchedCategoryId);
+        setDocuments(documents);
+      } catch (error) {
+        console.error('Erro ao buscar categoria ou documentos:', error);
+        // Redirect to the homepage or display an error message
+        router.push('/');
+      }
+    };
+
+    fetchCategoryAndDocuments();
+  }, [categoryName, router]);
+
+  const handleDocumentClick = (documentId: string) => {
+    router.push(`/document/${documentId}`);
   };
 
-  const handleDocumentClick = (documentId?: string) => {
-    if (documentId) {
-      router.push(`/document/${documentId}`);
-    } else {
-      console.error('Document ID is undefined');
-    }
+  const handleAddToCart = (documentId: string) => {
+    addToCart({ type: 'document', id: documentId });
   };
 
-  const handleAddToCart = (documentId?: string) => {
-    if (documentId) {
-      addToCart(documentId);
-    } else {
-      console.error('Document ID is undefined');
-    }
+  const handleBuyNow = (documentId: string) => {
+    addToCart({ type: 'document', id: documentId });
+    router.push('/cart');
   };
-
-  const handleBuyNow = (documentId?: string) => {
-    if (documentId) {
-      addToCart(documentId);
-      router.push('/cart');
-    } else {
-      console.error('Document ID is undefined');
-    }
-  };
-  
 
   return (
     <div className={styles.container}>
@@ -79,8 +72,10 @@ const CategoryPage: React.FC = () => {
             <div
               key={document.id}
               className={styles.documentCard}
-              onClick={() => handleDocumentClick(document.id)} // Redireciona ao clicar no documento
-              style={{ cursor: 'pointer' }} // Adiciona um cursor de ponteiro ao passar sobre o documento
+              onClick={() => {
+                if (document.id) handleDocumentClick(document.id); // Redireciona ao clicar no documento, verificando se id existe
+              }}
+              style={{ cursor: 'pointer' }} // Adiciona cursor de ponteiro ao passar sobre o documento
             >
               <img
                 className={styles.documentImage}
@@ -107,8 +102,8 @@ const CategoryPage: React.FC = () => {
                 <button
                   className={styles.buyButton}
                   onClick={(e) => {
-                    e.stopPropagation(); // Para evitar que o clique no botão também acione o clique do documento
-                    handleBuyNow(document.id);
+                    e.stopPropagation(); // Evita que o clique no botão também acione o clique do documento
+                    if (document.id) handleBuyNow(document.id); // Verificando se id existe
                   }}
                 >
                   Comprar
@@ -117,8 +112,8 @@ const CategoryPage: React.FC = () => {
                 <button
                   className={styles.cartButton}
                   onClick={(e) => {
-                    e.stopPropagation(); // Para evitar que o clique no botão também acione o clique do documento
-                    handleAddToCart(document.id);
+                    e.stopPropagation(); // Evita que o clique no botão também acione o clique do documento
+                    if (document.id) handleAddToCart(document.id); // Verificando se id existe
                   }}
                 >
                   Adicionar ao Carrinho
