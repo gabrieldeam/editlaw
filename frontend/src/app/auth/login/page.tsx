@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { loginUser } from '../../../services/authService'; // Serviço de login
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
@@ -46,22 +47,23 @@ const LoginPage: React.FC = () => {
       <div className={styles.leftContainer}>
         {notification && <Notification message={notification.message} type={notification.type} />}
         <Link href="/">
-          <img src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} />
+          {/* Use Image do Next.js para otimização */}
+          <Image src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} width={200} height={50} />
         </Link>
-
+  
         <h1 className={styles.title}>Entrar</h1>
-
+  
         <button className={styles.googleButton} onClick={handleGoogleSignIn}>
-          <img src="/image/google.svg" alt="Google Icon" className={styles.googleIcon} />
+          <Image src="/image/google.svg" alt="Google Icon" className={styles.googleIcon} width={24} height={24} />
           Entrar com o Google
         </button>
-
+  
         <div className={styles.separator}>
           <hr className={styles.line} />
           <span className={styles.or}>ou</span>
           <hr className={styles.line} />
         </div>
-
+  
         <form className={styles.form} onSubmit={handleSubmit}>
           <Input
             label="E-mail"
@@ -79,23 +81,25 @@ const LoginPage: React.FC = () => {
           />
           <button className={styles.button} type="submit">Entrar</button>
         </form>
-
+  
         <p className={styles.loginText}>
           Não tem uma conta?{' '}
           <Link href="/auth/register" className={styles.link}>Criar uma conta</Link>
         </p>
-
+  
         <p className={styles.loginText}>
           Esqueceu sua senha?{' '}
           <Link href="/auth/reset-password" className={styles.link}>Redefinir senha</Link>
         </p>
       </div>
-
+  
       <div className={styles.rightContainer}>
-        <img src="/icon/checklogo.svg" alt="Check Logo" className={styles.rightImage} />
+        {/* Use Image do Next.js para otimização */}
+        <Image src="/icon/checklogo.svg" alt="Check Logo" className={styles.rightImage} width={500} height={500} />
       </div>
     </div>
   );
+  
 };
 
 export default LoginPage;

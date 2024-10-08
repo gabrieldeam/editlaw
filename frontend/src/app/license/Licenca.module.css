@@ -1,0 +1,214 @@
+.container {
+    margin: 0 auto;
+    padding: 70px;
+    border-radius: 8px;
+    margin-top: 60px;
+    max-width: 1500px;
+}
+
+.title {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.intro {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 40px;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.section h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+
+}
+
+.icon {
+    margin-right: 10px;
+    color: #45C907;
+    transition: transform 0.3s;
+}
+
+.icon:hover {
+    transform: rotate(20deg);
+}
+
+.section p {
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    justify-items: center;
+    margin-top: 20px;
+}
+
+.card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardIcon {
+    font-size: 30px;
+    color: #45C907;
+    margin-bottom: 15px;
+    transition: color 0.3s;
+}
+
+.cardIcon:hover {
+    color: #2a9d8f;
+}
+
+.card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.list li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.listIcon {
+    margin-right: 10px;
+    color: #45C907;
+    margin-top: 4px;
+    font-size: 18px;
+}
+
+.list strong {
+    color: #333;
+}
+
+.link {
+    color: #45C907;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.link:hover {
+    color: #2a9d8f;
+    text-decoration: underline;
+}
+
+/* Novas Estilizações para Seções Específicas */
+
+/* Propriedade Intelectual */
+.propriedade {
+    background-color: #fffbea;
+    border-left: 5px solid #ffc107;
+    padding-left: 15px;
+}
+
+/* Conteúdo de Domínio Público */
+.conteudo {
+    background-color: #e3f2fd;
+    border-left: 5px solid #2196f3;
+    padding-left: 15px;
+}
+
+/* Autoria dos Textos e Writs */
+.autoria {
+    background-color: #f3e5f5;
+    border-left: 5px solid #9c27b0;
+    padding-left: 15px;
+}
+
+/* Terminação da Licença */
+.terminacao {
+    background-color: #ffebee;
+    border-left: 5px solid #f44336;
+    padding-left: 15px;
+}
+
+/* Isenção de Responsabilidade */
+.isencao {
+    background-color: #f1f8e9;
+    border-left: 5px solid #8bc34a;
+    padding-left: 15px;
+}
+
+/* Alterações na Licença */
+.alteracoes {
+    background-color: #e8f5e9;
+    border-left: 5px solid #4caf50;
+    padding-left: 15px;
+}
+
+/* Contato */
+.contato {
+    background-color: #fff3e0;
+    border-left: 5px solid #ff9800;
+    padding-left: 15px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    .title {
+        font-size: 28px;
+    }
+
+    .intro {
+        font-size: 16px;
+    }
+
+    .section h2 {
+        font-size: 24px;
+    }
+
+    .card {
+        max-width: 100%;
+    }
+
+    /* Ajuste de padding para seções com bordas */
+    .propriedade,
+    .conteudo,
+    .autoria,
+    .terminacao,
+    .isencao,
+    .alteracoes,
+    .contato {
+        padding-left: 10px;
+    }
+}

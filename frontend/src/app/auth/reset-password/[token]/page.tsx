@@ -35,7 +35,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ params }) => {
       setTimeout(() => {
         router.push('/auth/login');
       }, 2000);
-    } catch (error) {
+    } catch {
       setNotification({ message: 'Erro ao redefinir a senha. Tente novamente.', type: 'error' });
     }
   };

@@ -7,6 +7,7 @@ import { useCart } from '../../../context/CartContext';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getBillingInfo, createOrUpdateBillingInfo } from '../../../services/billingService';
 import { getCreditCards, createCreditCard } from '@/services/creditCardService';
+import { getPackageById, Package } from '@/services/packageService';
 import { createPurchasedDocuments } from '@/services/purchasedDocumentService';
 import { CreditCard } from '@/types/creditCard';
 import Input from '../../../components/input/Input';
@@ -14,13 +15,19 @@ import Notification from '../../../components/notification/Notification';
 import { useAuth } from '../../../context/AuthContext';
 import { usePayment } from '../../../context/PaymentContext';
 
+interface CartItem {
+  type: 'document' | 'package';
+  id: string;
+}
+
 const PaymentPage: React.FC = () => {
   const router = useRouter();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, removeFromCart } = useCart();
   const { isAuthenticated, loading, user } = useAuth();
-  const { totalAmount } = usePayment();
+  const { totalAmount, setTotalAmount } = usePayment();
 
   const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [billingInfo, setBillingInfo] = useState({
     country: '',
     phone: '',
@@ -36,7 +43,6 @@ const PaymentPage: React.FC = () => {
   const [isBillingInfoVisible, setIsBillingInfoVisible] = useState(false);
   const [isDocumentListVisibility, setIsDocumentListVisibility] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
   // Estados para cartões de crédito
   const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
@@ -54,26 +60,43 @@ const PaymentPage: React.FC = () => {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Carregar documentos do carrinho
+  // Redirecionar se totalAmount for zero
   useEffect(() => {
-    const fetchDocuments = async () => {
+    if (totalAmount === 0) {
+      router.push('/cart');
+    }
+  }, [totalAmount, router]);
+
+  // Carregar documentos e pacotes do carrinho
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      const fetchedDocuments: DocumentData[] = [];
+      const fetchedPackages: Package[] = [];
+
       try {
-        const docs: DocumentData[] = await Promise.all(
-          cartItems
-            .filter(item => item.type === 'document')
-            .map(item => getDocumentById(item.id))
-        );
-        setDocuments(docs);
+        // Filtrar e buscar documentos
+        const docs = cartItems.filter(item => item.type === 'document');
+        const docsData = await Promise.all(docs.map(item => getDocumentById(item.id)));
+        fetchedDocuments.push(...docsData);
+
+        // Filtrar e buscar pacotes
+        const pkgs = cartItems.filter(item => item.type === 'package');
+        const pkgsData = await Promise.all(pkgs.map(item => getPackageById(item.id)));
+        fetchedPackages.push(...pkgsData);
+
+        setDocuments(fetchedDocuments);
+        setPackages(fetchedPackages);
       } catch (error) {
-        console.error('Erro ao buscar documentos:', error);
-        setNotification({ message: 'Erro ao carregar documentos. Tente novamente.', type: 'error' });
+        console.error('Erro ao carregar itens do carrinho:', error);
+        setNotification({ message: 'Erro ao carregar itens do carrinho.', type: 'error' });
       }
     };
 
     if (cartItems.length > 0) {
-      fetchDocuments();
+      fetchCartItems();
     } else {
       setDocuments([]);
+      setPackages([]);
     }
   }, [cartItems]);
 
@@ -115,6 +138,29 @@ const PaymentPage: React.FC = () => {
 
     fetchCreditCards();
   }, []);
+
+  // Carregar documentos do carrinho
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const docs: DocumentData[] = await Promise.all(
+          cartItems
+            .filter(item => item.type === 'document')
+            .map(item => getDocumentById(item.id))
+        );
+        setDocuments(docs);
+      } catch (error) {
+        console.error('Erro ao buscar documentos:', error);
+        setNotification({ message: 'Erro ao carregar documentos. Tente novamente.', type: 'error' });
+      }
+    };
+
+    if (cartItems.length > 0) {
+      fetchDocuments();
+    } else {
+      setDocuments([]);
+    }
+  }, [cartItems]);
 
   const isBillingInfoValid = () => {
     return Object.values(billingInfo).every((field) => field.trim() !== '');
@@ -183,33 +229,47 @@ const PaymentPage: React.FC = () => {
       if (isAddCardVisible) {
         await handleAddCard();
       }
-
+  
       const selectedCard = creditCards.find((card) => card.id === selectedCardId);
-
+  
       if (!selectedCard) {
         setNotification({ message: 'Selecione um cartão para realizar o pagamento.', type: 'error' });
         return;
       }
-
+  
       if (!user) {
         setNotification({ message: 'Usuário não autenticado.', type: 'error' });
         return;
       }
-
-      // Filtra os ids para garantir que não haja undefined
-      const documentIds = documents.map(doc => doc.id).filter(id => id !== undefined) as string[];
-
-      const purchasedDocuments = await createPurchasedDocuments({ documentIds });
-
+  
+      // Extrair IDs de documentos do carrinho
+      const documentIdsFromCart = documents.map(doc => doc.id).filter(id => id !== undefined) as string[];
+  
+      // Extrair IDs de documentos dentro dos pacotes
+      const documentIdsFromPackages = packages
+        .flatMap(pkg => pkg.documentIds) // Pega todos os IDs de documentos dentro dos pacotes
+        .filter(id => id !== undefined); // Garante que não haja IDs indefinidos
+  
+      // Combinar ambos os arrays de IDs
+      const allDocumentIds = [...documentIdsFromCart, ...documentIdsFromPackages];
+  
+      if (allDocumentIds.length === 0) {
+        setNotification({ message: 'Nenhum documento para processar no pagamento.', type: 'error' });
+        return;
+      }
+  
+      // Enviar os IDs combinados para o serviço de criação de documentos comprados
+      const purchasedDocuments = await createPurchasedDocuments({ documentIds: allDocumentIds });
+  
       // Sucesso: limpar o carrinho
       clearCart();
-
+  
       // Remove o cupom do localStorage após pagamento bem-sucedido
       localStorage.removeItem('promoCode');
-
+  
       // Exibir notificação de sucesso
       setNotification({ message: 'Pagamento realizado com sucesso!', type: 'success' });
-
+  
       // Redirecionar para a página de sucesso
       router.push('/purchase-success');
     } catch (error) {
@@ -217,6 +277,7 @@ const PaymentPage: React.FC = () => {
       setNotification({ message: 'Erro ao processar o pagamento.', type: 'error' });
     }
   };
+  
 
   const handlePayWithBoleto = () => {
     alert('Pagamento com boleto não implementado.');
@@ -225,6 +286,7 @@ const PaymentPage: React.FC = () => {
   const handlePayWithPix = () => {
     alert('Pagamento com pix não implementado.');
   };
+
 
   if (loading) {
     return (
@@ -405,6 +467,7 @@ const PaymentPage: React.FC = () => {
               </div>
             )}
           </div>
+          
         </div>
 
         <div className={styles.rightSide}>
@@ -416,7 +479,7 @@ const PaymentPage: React.FC = () => {
               </button>
             </div>
 
-            <p className={styles.summaryItems}>Número de itens: {documents.length}</p>
+            <p className={styles.summaryItems}>Número de itens: {cartItems.length}</p>
             <hr className={styles.separator} />
 
             <div className={styles.subtotalRow}>
@@ -444,6 +507,7 @@ const PaymentPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Listagem de Documentos e Pacotes */}
           <div className={styles.documentList}>
             <div className={styles.documentListHeader}>
               <h2 className={styles.documentListTitle}>Seus itens</h2>
@@ -456,24 +520,48 @@ const PaymentPage: React.FC = () => {
             </div>
             {isDocumentListVisibility && (
               <>
-                {documents.length > 0 ? (
-                  documents.map((document) => (
-                    <div key={document.id} className={styles.documentCard}>
-                      <img
-                        className={styles.documentImage}
-                        src={`${process.env.NEXT_PUBLIC_API_URL_IMAGE}${document.image}`}
-                        alt={document.title}
-                      />
-                      <div className={styles.documentInfo}>
-                        <h2 className={styles.documentTitle}>{document.title}</h2>
-                        <p className={styles.documentPrice}>
-                          {document.precoDesconto ? `R$ ${document.precoDesconto}` : `R$ ${document.preco}`}
-                        </p>
-                        <p className={styles.access}>Acesso limitado</p>
+                {documents.length > 0 && (
+                  <div>
+                    <h2 className={styles.sectionTitle}>Documentos</h2>
+                    {documents.map((document) => (
+                      <div key={document.id} className={styles.documentCard}>
+                        <img
+                          className={styles.documentImage}
+                          src={`${process.env.NEXT_PUBLIC_API_URL_IMAGE}${document.image}`}
+                          alt={document.title}
+                        />
+                        <div className={styles.documentInfo}>
+                          <h2 className={styles.documentTitle}>{document.title}</h2>
+                          <p className={styles.documentPrice}>
+                            {document.precoDesconto ? `R$ ${document.precoDesconto}` : `R$ ${document.preco}`}
+                          </p>
+                          <p className={styles.access}>Acesso limitado</p>
+                        </div>                        
                       </div>
-                    </div>
-                  ))
-                ) : (
+                    ))}
+                  </div>
+                )}
+
+                {packages.length > 0 && (
+                  <div>
+                    <h2 className={styles.sectionTitle}>Pacotes</h2>
+                    {packages.map((pkg) => (
+                      <div key={pkg.id} className={styles.packageCard}>
+                        <div className={styles.packageInfo}>
+                          <h2 className={styles.packageTitle}>{pkg.title}</h2>
+                          <p className={styles.packagePrice}>
+                            {pkg.precoDesconto ? `R$ ${pkg.precoDesconto}` : `R$ ${pkg.preco}`}
+                          </p>
+                          <p className={styles.packageDescription}>
+                            Pacote com {pkg.documentIds.length} documento{pkg.documentIds.length > 1 ? 's' : ''}
+                          </p>
+                        </div>                        
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {(documents.length === 0 && packages.length === 0) && (
                   <p className={styles.emptyMessage}>O carrinho está vazio.</p>
                 )}
               </>

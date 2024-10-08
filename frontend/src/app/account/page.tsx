@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { getUserInfo, editEmail, resetPassword, deleteAccount } from '../../services/authService';
-import { getBillingInfo, createOrUpdateBillingInfo } from '../../services/billingService'; // Importa os serviços de cobrança
+import { getBillingInfo } from '../../services/billingService'; // Importa os serviços de cobrança
 import Input from '../../components/input/Input'; // Importa o componente Input
 import Notification from '../../components/notification/Notification'; // Importa o componente de notificação
 import styles from './account.module.css'; // Importa os estilos
@@ -41,7 +41,7 @@ const AccountPage: React.FC = () => {
           setBillingInfo(billing);
           setHasBillingData(true); // Define que existem dados de cobrança
         }
-      } catch (error) {
+      } catch {
         // Evita mostrar a mensagem de erro quando não há dados de cobrança
         setHasBillingData(false);
       }
@@ -58,7 +58,7 @@ const AccountPage: React.FC = () => {
         setNotification({ message: 'Email atualizado com sucesso!', type: 'success' });
         setEmail(newEmail);
       }
-    } catch (error) {
+    } catch {
       setNotification({ message: 'Erro ao atualizar o email.', type: 'error' });
     }
   };
@@ -68,7 +68,7 @@ const AccountPage: React.FC = () => {
     try {
       await resetPassword(email); // Envia o email cadastrado para o endpoint de redefinição de senha
       setNotification({ message: 'Link de redefinição de senha enviado com sucesso!', type: 'success' });
-    } catch (error) {
+    } catch {
       setNotification({ message: 'Erro ao enviar o link de redefinição de senha.', type: 'error' });
     }
   };
@@ -82,7 +82,7 @@ const AccountPage: React.FC = () => {
         setNotification({ message: 'Conta deletada com sucesso!', type: 'success' });
         // Redireciona para a página de login após a exclusão da conta
         router.push('/auth/login');
-      } catch (error) {
+      } catch {
         setNotification({ message: 'Erro ao deletar a conta.', type: 'error' });
       }
     }

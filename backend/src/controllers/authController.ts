@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 
 // Função para gerar token JWT (userId agora é string)
 const generateToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '30d' });
 };
 
 
@@ -40,7 +40,7 @@ export const registerUser = async (req: Request, res: Response) => {
       httpOnly: true, 
       secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict', 
-      maxAge: 3600000, 
+      maxAge: 2592000000, 
     });
 
     res.status(201).json({ message: 'Usuário registrado com sucesso!' });
@@ -77,7 +77,7 @@ export const loginUser = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 3600000,
+      maxAge: 2592000000,
     });
 
     res.status(200).json({ message: 'Login bem-sucedido!' });

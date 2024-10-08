@@ -6,6 +6,7 @@ import { registerUser } from '../../../services/authService';
 import Input from '../../../components/input/Input';
 import Notification from '../../../components/notification/Notification';
 import Link from 'next/link';
+import Image from 'next/image'; // Importa o componente Image do Next.js
 import styles from './register.module.css';
 import { validatePassword } from '../../../utils/passwordValidation'; // Importe a função de validação
 
@@ -32,9 +33,12 @@ const RegisterPage: React.FC = () => {
       setNotification({ message: 'Registro bem-sucedido!', type: 'success' });
       console.log('Registro bem-sucedido:', data);
       router.push('/');
-    } catch (error: any) {
-      if (error.response && error.response.data && error.response.data.message) {
-        setNotification({ message: error.response.data.message, type: 'error' });
+    } catch (error: unknown) { // Substituído 'any' por 'unknown'
+      if (error instanceof Error) {
+        // Verifica se o erro possui uma resposta específica
+        // Isso depende de como sua função registerUser lança erros
+        // Ajuste conforme necessário
+        setNotification({ message: error.message || 'Erro no registro. Tente novamente.', type: 'error' });
       } else {
         setNotification({ message: 'Erro no registro. Tente novamente.', type: 'error' });
       }
@@ -53,13 +57,15 @@ const RegisterPage: React.FC = () => {
       {notification && <Notification message={notification.message} type={notification.type} />}
 
       <Link href="/">
-        <img src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} />
+        {/* Substituído <img> por <Image /> com dimensões especificadas */}
+        <Image src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} width={200} height={50} />
       </Link>
 
       <h1 className={styles.title}>Criar uma conta</h1>
 
       <button className={styles.googleButton} onClick={handleGoogleSignIn}>
-        <img src="/image/google.svg" alt="Google Icon" className={styles.googleIcon} />
+        {/* Substituído <img> por <Image /> com dimensões especificadas */}
+        <Image src="/image/google.svg" alt="Google Icon" className={styles.googleIcon} width={24} height={24} />
         Registrar-se com o Google
       </button>
 
@@ -95,7 +101,7 @@ const RegisterPage: React.FC = () => {
       </form>
 
       <p className={styles.termsText}>
-        Ao clicar em "Criar conta", você aceita os{' '}
+        Ao clicar em &quot;Criar conta&quot;, você aceita os{' '}
         <Link href="/terms" className={styles.link}>Termos de Serviço</Link> e a{' '}
         <Link href="/privacy" className={styles.link}>Política de Privacidade</Link>.
       </p>
@@ -105,9 +111,9 @@ const RegisterPage: React.FC = () => {
         <Link href="/auth/login" className={styles.link}>Fazer login</Link>
       </p>
 
-      {/* Adicionando imagens no fundo */}
-      <img src="/icon/checklogo.svg" alt="Check Logo" className={styles.logo1} />
-      <img src="/icon/checklogo.svg" alt="Check Logo" className={styles.logo2} />
+      {/* Substituído <img> por <Image /> com dimensões especificadas */}
+      <Image src="/icon/checklogo.svg" alt="Check Logo" className={styles.logo1} width={100} height={100} />
+      <Image src="/icon/checklogo.svg" alt="Check Logo" className={styles.logo2} width={100} height={100} />
     </div>
   );
 };

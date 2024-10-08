@@ -22,7 +22,7 @@ const UsersPage: React.FC = () => {
         const response = await getAllUsers();
         setUsers(response);
         setLoading(false);
-      } catch (err) {
+      } catch {
         setError("Erro ao carregar usuários.");
         setLoading(false);
       }

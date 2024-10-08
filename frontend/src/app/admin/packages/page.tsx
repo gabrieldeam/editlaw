@@ -2,14 +2,12 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getAllPackages, deletePackage, Package } from '../../../services/packageService';
 import { getAllDocuments, Document, PaginatedDocumentsResponse  } from '../../../services/documentApi';
 import styles from './packages.module.css';
 import PackageModal from './PackageModal';
 
 const PackagesPage: React.FC = () => {
-  const router = useRouter();
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -20,7 +18,7 @@ const PackagesPage: React.FC = () => {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [size, setSize] = useState(10);
+  const [size] = useState(10);
 
   useEffect(() => {
     const fetchPackages = async () => {

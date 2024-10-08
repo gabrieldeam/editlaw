@@ -10,6 +10,9 @@ interface Category {
   id: string;
   name: string;
   description: string;
+  image1: File | null;
+  image2: File | null;
+  image3: File | null;
 }
 
 const CategoriesPage: React.FC = () => {
@@ -25,7 +28,7 @@ const CategoriesPage: React.FC = () => {
         const response = await getAllCategories();
         setCategories(response);
         setLoading(false);
-      } catch (err) {
+      } catch {
         setError("Erro ao carregar categorias.");
         setLoading(false);
       }
@@ -50,7 +53,7 @@ const CategoriesPage: React.FC = () => {
       try {
         await deleteCategory(id);
         setCategories(categories.filter(category => category.id !== id));
-      } catch (error) {
+      } catch {
         setError("Erro ao deletar a categoria.");
       }
     }

@@ -20,17 +20,14 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItemsState] = useState<CartItem[]>([]);
 
+  // Carregar itens do carrinho do localStorage ao montar o componente
   useEffect(() => {
     const storedCart = localStorage.getItem('cart');
     if (storedCart) {
       try {
         const parsedCart = JSON.parse(storedCart);
-        if (parsedCart.length > 0 && typeof parsedCart[0] === 'string') {
-          // Formato antigo: string[]
-          const upgradedCart: CartItem[] = parsedCart.map((id: string) => ({ type: 'document', id }));
-          setCartItemsState(upgradedCart);
-          localStorage.setItem('cart', JSON.stringify(upgradedCart));
-        } else {
+        // Verifica se os dados do carrinho são válidos
+        if (Array.isArray(parsedCart)) {
           setCartItemsState(parsedCart as CartItem[]);
         }
       } catch (e) {
@@ -40,8 +37,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  // Atualizar o localStorage sempre que o estado do carrinho mudar
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    if (cartItems.length > 0) {
+      localStorage.setItem('cart', JSON.stringify(cartItems));
+    } else {
+      localStorage.removeItem('cart'); // Limpa o carrinho no localStorage se estiver vazio
+    }
   }, [cartItems]);
 
   const addToCart = (item: CartItem) => {

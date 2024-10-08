@@ -164,8 +164,8 @@ const Header: React.FC = () => {
           </div>
         </div>
         <div className={styles.right}>
-          <Link href="/licenca" className={styles.licenca}>Licença</Link>
-          <Link href="/suport" className={styles.licenca}>Suporte</Link>
+          <Link href="/license" className={styles.licenca}>Licença</Link>
+          <Link href="/suporte" className={styles.licenca}>Suporte</Link>
 
           <div onClick={handleSearchClick} className={styles.searchMobileContainer}>
             <img src="/icon/search.svg" alt="Search Icon" className={styles.searchMobileIcon} />

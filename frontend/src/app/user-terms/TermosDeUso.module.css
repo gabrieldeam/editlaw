@@ -1,0 +1,83 @@
+/* TermosDeUso.module.css */
+
+.container {
+    margin: 0 auto;
+    padding: 60px 40px;
+    border-radius: 8px;
+    margin-top: 60px;
+    max-width: 1500px;
+}
+
+.title {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+}
+
+.intro {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 40px;
+    text-align: justify;
+
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+
+
+.section p {
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 15px;
+    text-align: justify;
+}
+
+.list {
+    list-style: decimal;
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.list li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.link {
+    color: #45C907;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.link:hover {
+    color: #45C907;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 40px 20px;
+    }
+
+    .title {
+        font-size: 28px;
+    }
+
+    .intro {
+        font-size: 16px;
+    }
+
+    .sectionTitle {
+        font-size: 22px;
+    }
+
+    .section p,
+    .list li {
+        font-size: 15px;
+    }
+}

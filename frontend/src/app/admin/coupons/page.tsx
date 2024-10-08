@@ -16,7 +16,7 @@ const CouponsPage: React.FC = () => {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [size, setSize] = useState(10);
+  const [size] = useState(10);
 
   useEffect(() => {
     const fetchCoupons = async () => {

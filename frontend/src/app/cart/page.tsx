@@ -1,8 +1,6 @@
-// src/app/cart/page.tsx
-
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getDocumentById, DocumentData } from '@/services/documentApi';
 import { getPackageById, Package } from '@/services/packageService';
 import { getActiveCouponByName } from '@/services/couponService';
@@ -10,6 +8,7 @@ import { useCart } from '../../context/CartContext';
 import { useRouter } from 'next/navigation'; 
 import { usePayment } from '../../context/PaymentContext';
 import Notification from '../../components/notification/Notification';
+import Image from 'next/image'; // Importando Image do Next.js
 import styles from './cart.module.css';
 
 interface CartItem {
@@ -35,6 +34,26 @@ const CartPage: React.FC = () => {
       setPromoCode(storedPromoCode);
     }
   }, []);
+
+  // Função para aplicar o cupom (memorizada para evitar re-renderizações desnecessárias)
+  const applyStoredCoupon = useCallback(async (code: string) => {
+    try {
+      const response = await getActiveCouponByName(code);
+      if ('discountRate' in response) {
+        const discountRate = response.discountRate;
+        const discountAmount = (subtotal * discountRate) / 100;
+
+        setDiscount(discountAmount); // Aplica o desconto
+        setNotification({ message: `Cupom ${code} reaplicado com sucesso!`, type: 'success' });
+      } else {
+        setNotification({ message: response.message, type: 'error' });
+        setDiscount(0); // Remove o desconto caso o código seja inválido
+      }
+    } catch (error) {
+      console.error('Erro ao reaplicar o cupom:', error);
+      setNotification({ message: 'Erro ao reaplicar o código promocional.', type: 'error' });
+    }
+  }, [subtotal]);
 
   // Atualizar subtotal quando os itens do carrinho mudam
   useEffect(() => {
@@ -77,40 +96,14 @@ const CartPage: React.FC = () => {
     }
   }, [cartItems]);
 
-  // Aplicar automaticamente o cupom quando o subtotal muda
+  // Aplicar automaticamente o cupom quando o subtotal ou promoCode mudam
   useEffect(() => {
     if (promoCode && subtotal > 0) {
       applyStoredCoupon(promoCode); // Aplica o desconto baseado no subtotal
     }
-  }, [subtotal, promoCode]);
+  }, [subtotal, promoCode, applyStoredCoupon]);
 
   // Função para aplicar o cupom
-  const applyStoredCoupon = async (code: string) => {
-    try {
-      const response = await getActiveCouponByName(code);
-      if ('discountRate' in response) {
-        const discountRate = response.discountRate;
-        const discountAmount = (subtotal * discountRate) / 100;
-
-        setDiscount(discountAmount); // Aplica o desconto
-        setNotification({ message: `Cupom ${code} reaplicado com sucesso!`, type: 'success' });
-      } else {
-        setNotification({ message: response.message, type: 'error' });
-        setDiscount(0); // Remove o desconto caso o código seja inválido
-      }
-    } catch (error) {
-      setNotification({ message: 'Erro ao reaplicar o código promocional.', type: 'error' });
-    }
-  };
-
-  const handleRemoveItem = (item: CartItem) => {
-    if (item) {
-      removeFromCart(item);
-    } else {
-      console.error('Item para remover é indefinido.');
-    }
-  };
-
   const handleApplyPromoCode = async () => {
     try {
       const response = await getActiveCouponByName(promoCode);
@@ -130,6 +123,7 @@ const CartPage: React.FC = () => {
         localStorage.removeItem('promoCode'); // Remove o cupom inválido do localStorage
       }
     } catch (error) {
+      console.error('Erro ao aplicar o cupom:', error);
       setNotification({ message: 'Erro ao aplicar o código promocional.', type: 'error' });
     }
   };
@@ -147,6 +141,14 @@ const CartPage: React.FC = () => {
     }
   };
 
+  const handleRemoveItem = (item: CartItem) => {
+    if (item) {
+      removeFromCart(item);
+    } else {
+      console.error('Item para remover é indefinido.');
+    }
+  };
+
   const handlePayment = () => {
     if (subtotal > 0 && (documents.length > 0 || packages.length > 0)) {
       const totalAmount = subtotal - discount; // Calcula o valor total com o desconto
@@ -156,7 +158,7 @@ const CartPage: React.FC = () => {
       setNotification({ message: 'O carrinho está vazio ou o total é inválido.', type: 'error' });
     }
   };  
- 
+  
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Carrinho</h1>
@@ -173,10 +175,12 @@ const CartPage: React.FC = () => {
               <h2 className={styles.sectionTitle}>Documentos</h2>
               {documents.map((document) => (
                 <div key={document.id} className={styles.documentCard}>
-                  <img
+                  <Image
                     className={styles.documentImage}
                     src={`${process.env.NEXT_PUBLIC_API_URL_IMAGE}${document.image}`}
                     alt={document.title}
+                    width={100} // Ajuste conforme o tamanho real da imagem
+                    height={100} // Ajuste conforme o tamanho real da imagem
                   />
                   <div className={styles.documentInfo}>
                     <h2 className={styles.documentTitle}>{document.title}</h2>
@@ -185,10 +189,12 @@ const CartPage: React.FC = () => {
                     </p>
                     <p className={styles.access}>Acesso limitado</p>
                   </div>
-                  <img
+                  <Image
                     src="/icon/trash.svg"
                     alt="Remover"
                     className={styles.trashIcon}
+                    width={24} // Ajuste conforme o tamanho real do ícone
+                    height={24} // Ajuste conforme o tamanho real do ícone
                     onClick={() => {
                       if (document.id) { // Adiciona verificação
                         handleRemoveItem({ type: 'document', id: document.id });
@@ -216,10 +222,12 @@ const CartPage: React.FC = () => {
                       Pacote com {pkg.documentIds.length} documento{pkg.documentIds.length > 1 ? 's' : ''}
                     </p>
                   </div>
-                  <img
+                  <Image
                     src="/icon/trash.svg"
                     alt="Remover"
                     className={styles.trashIcon}
+                    width={24} // Ajuste conforme o tamanho real do ícone
+                    height={24} // Ajuste conforme o tamanho real do ícone
                     onClick={() => {
                       if (pkg.id) { // Adiciona verificação
                         handleRemoveItem({ type: 'package', id: pkg.id });
@@ -290,16 +298,22 @@ const CartPage: React.FC = () => {
           {/* Pagamento seguro e ícones das formas de pagamento */}
           <div className={styles.paymentInfo}>
             <div className={styles.paymentTextContainer}>
-              <img src="/icon/assurance.svg" alt="Pagamento seguro" className={styles.assuranceIcon} />
+              <Image
+                src="/icon/assurance.svg"
+                alt="Pagamento seguro"
+                className={styles.assuranceIcon}
+                width={24} // Ajuste conforme o tamanho real do ícone
+                height={24} // Ajuste conforme o tamanho real do ícone
+              />
               <span className={styles.paymentText}>Pagamento seguro</span>
             </div>
             <div className={styles.paymentIconsContainer}>
-              <img src="/icon/visa.svg" alt="Visa" className={styles.paymentIcon} />
-              <img src="/icon/masterCard.svg" alt="MasterCard" className={styles.paymentIcon} />
-              <img src="/icon/elo.svg" alt="Elo" className={styles.paymentIcon} />
-              <img src="/icon/amex.svg" alt="Amex" className={styles.paymentIcon} />
-              <img src="/icon/pix.svg" alt="Pix" className={styles.paymentIcon} />
-              <img src="/icon/boleto.svg" alt="Boleto" className={styles.paymentIcon} />
+              <Image src="/icon/visa.svg" alt="Visa" className={styles.paymentIcon} width={32} height={20} />
+              <Image src="/icon/masterCard.svg" alt="MasterCard" className={styles.paymentIcon} width={32} height={20} />
+              <Image src="/icon/elo.svg" alt="Elo" className={styles.paymentIcon} width={32} height={20} />
+              <Image src="/icon/amex.svg" alt="Amex" className={styles.paymentIcon} width={32} height={20} />
+              <Image src="/icon/pix.svg" alt="Pix" className={styles.paymentIcon} width={32} height={20} />
+              <Image src="/icon/boleto.svg" alt="Boleto" className={styles.paymentIcon} width={32} height={20} />
             </div>
           </div>
         </div>

@@ -49,7 +49,7 @@ passport.deserializeUser(async (id: string, done) => {
 
 // Função para gerar o token JWT
 const generateToken = (userId: string) => { // userId agora é uma string
-  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '30d' });
 };
 
 // Rota de login com sucesso após autenticação com o Google
@@ -60,7 +60,7 @@ export const googleLoginSuccess = (req: any, res: any) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 3600000,
+    maxAge: 2592000000,
   });
 
   // Usar a variável de ambiente para o redirecionamento

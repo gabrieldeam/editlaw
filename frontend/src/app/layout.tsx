@@ -1,8 +1,11 @@
-"use client";
+// components/RootLayout.tsx
+'use client';
 
 import '../styles/globals.css';
+import './fonts/fontawesome';
 import { ReactNode, useEffect, useState } from 'react';
 import Header from '../components/header/Header';
+import Footer from '../components/footer/Footer';
 import { usePathname, useRouter } from 'next/navigation';
 import { checkAuth, isAdmin } from '../services/authService';
 import { AuthProvider } from '../context/AuthContext';
@@ -99,6 +102,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
             <PaymentProvider>
               {showHeader && <Header />}
               <main>{children}</main>
+              <Footer /> {/* Adiciona o Footer aqui */}
             </PaymentProvider>
           </CartProvider>
         </AuthProvider>

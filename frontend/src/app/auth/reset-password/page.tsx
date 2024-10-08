@@ -5,6 +5,7 @@ import { resetPassword } from '../../../services/authService';
 import Input from '../../../components/input/Input'; // Reutilizando o componente Input
 import Notification from '../../../components/notification/Notification'; // Reutilizando o componente Notification
 import Link from 'next/link';
+import Image from 'next/image'; // Importando o componente Image
 import styles from './reset-password.module.css';
 
 const ResetPasswordPage: React.FC = () => {
@@ -30,7 +31,8 @@ const ResetPasswordPage: React.FC = () => {
       {notification && <Notification message={notification.message} type={notification.type} />}
 
       <Link href="/">
-        <img src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} />
+        {/* Substituído o <img> por <Image /> */}
+        <Image src="/image/editlawblack.svg" alt="EditLaw Logo" className={styles.logo} width={200} height={50} />
       </Link>
 
       <h1 className={styles.title}>Redefinir Senha</h1>
